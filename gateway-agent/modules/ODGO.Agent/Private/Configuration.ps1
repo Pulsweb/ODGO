@@ -8,15 +8,15 @@ $script:GwmLogTypeNames = @(
 $script:GwmGuidPattern = '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
 
 function Get-GwmDefaultConfiguration {
+    <# Default configuration. The state, logs and client secret are in the agent folder (AgentRoot). #>
     [OutputType([System.Collections.Specialized.OrderedDictionary])]
-    param()
-    $programData = if ($env:ProgramData) { $env:ProgramData } else { [System.IO.Path]::GetTempPath() }
+    param([string] $AgentRoot = $script:GwmAgentRoot)
     [ordered]@{
         schemaVersion  = '1.0'
         environment    = 'prod'
         agent          = [ordered]@{
-            stateDirectory          = Join-Path $programData 'ODGO\state'
-            logDirectory            = Join-Path $programData 'ODGO\logs'
+            stateDirectory          = Join-Path $AgentRoot 'state'
+            logDirectory            = Join-Path $AgentRoot 'logs'
             logLevel                = 'Information'
             logRetentionDays        = 30
             maxRunMinutes           = 45
@@ -39,7 +39,7 @@ function Get-GwmDefaultConfiguration {
             mode                    = 'ClientSecret'
             tenantId                = $null
             clientId                = $null
-            clientSecretPath        = Join-Path $programData 'ODGO\config\client-secret.dat'
+            clientSecretPath        = Join-Path $AgentRoot 'config\client-secret.dat'
             managedIdentityClientId = $null
             authorityHost           = 'https://login.microsoftonline.com'
             resource                = 'https://storage.azure.com/'
@@ -150,9 +150,10 @@ function Resolve-GwmConfiguration {
     <# Merges defaults + file content + overrides, expands paths, completes sources. Does not validate. #>
     param(
         [AllowNull()][System.Collections.IDictionary] $FileConfiguration,
-        [AllowNull()][hashtable] $Overrides
+        [AllowNull()][hashtable] $Overrides,
+        [string] $AgentRoot = $script:GwmAgentRoot
     )
-    $configuration = Merge-GwmDictionary -Base (Get-GwmDefaultConfiguration) -Override $FileConfiguration
+    $configuration = Merge-GwmDictionary -Base (Get-GwmDefaultConfiguration -AgentRoot $AgentRoot) -Override $FileConfiguration
     if ($Overrides) {
         foreach ($key in $Overrides.Keys) { Set-GwmConfigurationValue -Configuration $configuration -Path $key -Value $Overrides[$key] }
     }

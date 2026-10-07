@@ -10,7 +10,7 @@ function Set-GwmClientSecret {
     .PARAMETER Secret
         The client secret value (not the secret id).
     .PARAMETER Path
-        Default: authentication.clientSecretPath (%ProgramData%\ODGO\config\client-secret.dat).
+        Default: authentication.clientSecretPath (config\client-secret.dat in the agent folder).
     #>
     [CmdletBinding(SupportsShouldProcess)]
     param(

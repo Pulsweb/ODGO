@@ -4,29 +4,25 @@
     Installs, configures or upgrades the ODGO agent on an on-premises data gateway server.
 
 .DESCRIPTION
-    Run from an elevated PowerShell 7 session. One command:
-      1. copies the agent to InstallPath (default %ProgramFiles%\ODGO), which only SYSTEM and Administrators can
-         change because the scheduled task runs the agent as SYSTEM;
-      2. creates DataPath (default %ProgramData%\ODGO) with config, state and logs folders that only
-         SYSTEM, Administrators and the task identity can access;
+    Run as administrator with PowerShell 7 (pwsh). One command:
+      1. creates InstallPath (default %ProgramFiles%\ODGO), which only SYSTEM, Administrators and the task identity
+         can access because the agent runs as SYSTEM and the folder holds the client secret;
+      2. copies the agent into it, with config, state and logs subfolders;
       3. writes config\config.json with the values below (every other setting keeps its default, see docs/configuration.md);
       4. stores the client secret encrypted with DPAPI (machine scope); you are prompted for it when needed;
       5. registers the scheduled task "\ODGO\Collect Gateway Logs";
       6. tests authentication and write access to OneLake.
-    Re-run without parameters to upgrade the agent: the folders, configuration, secret, state and scheduled task of the
+    Re-run without parameters to upgrade the agent: the folder, configuration, secret, state and scheduled task of the
     existing installation are kept.
-    InstallPath and DataPath must be new, empty or ODGO folders, owned by SYSTEM, Administrators, you or the task
-    identity: a folder created by another user is refused, because that user could replace the agent or read the
-    secret.
+    InstallPath must be a new, empty or ODGO folder, owned by SYSTEM, Administrators, you or the task identity: a
+    folder created by another user is refused, because that user could replace the agent or read the secret.
+    The scheduled task needs PowerShell 7 installed with the MSI (or ZIP) package: the MSIX package (Microsoft Store,
+    or winget since PowerShell 7.6) can't run as SYSTEM.
 
 .PARAMETER InstallPath
-    Folder of the agent files. Default: the folder of the existing installation, or %ProgramFiles%\ODGO. Use a local
-    folder such as D:\ODGO: drive roots and network paths are refused.
-
-.PARAMETER DataPath
-    Folder of the configuration, client secret, state and logs. Default: the folder of the existing installation, or
-    %ProgramData%\ODGO. If you change it, pass -ConfigPath <DataPath>\config\config.json to
-    Invoke-GatewayLogCollection.ps1 when you run it yourself.
+    Folder of the agent, its configuration, client secret, state and logs. Default: the folder of the existing
+    installation, or %ProgramFiles%\ODGO. Use a local folder such as D:\ODGO: drive roots and network paths are
+    refused.
 
 .PARAMETER WorkspaceId
     Fabric workspace id (printed by the ODGO_Setup notebook).
@@ -74,9 +70,9 @@
 
     First installation in D:\ODGO, with the managed identity of the server.
 .EXAMPLE
-    & "$env:ProgramFiles\ODGO\Install-Agent.ps1" -UpdateSecret
+    pwsh -File "$env:ProgramFiles\ODGO\Install-Agent.ps1" -UpdateSecret
 
-    Secret rotation, from the agent folder.
+    Secret rotation, with the installed copy of the script.
 .EXAMPLE
     .\Install-Agent.ps1
 
@@ -100,7 +96,6 @@ param(
     [string] $TaskUser = 'SYSTEM',
     [switch] $SkipTest,
     [string] $InstallPath = (Join-Path $env:ProgramFiles 'ODGO'),
-    [string] $DataPath = (Join-Path $env:ProgramData 'ODGO'),
     [switch] $SkipElevationCheck
 )
 $ErrorActionPreference = 'Stop'
@@ -109,7 +104,7 @@ if (-not $IsWindows) { throw 'The agent runs on Windows gateway servers.' }
 $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
 $isElevated = ([Security.Principal.WindowsPrincipal]$currentUser).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isElevated -and -not $SkipElevationCheck -and -not $WhatIfPreference) {
-    throw 'Run this script from an elevated PowerShell 7 session (Run as administrator).'
+    throw 'Run this script as administrator (Run as administrator).'
 }
 $modulePath = Join-Path $PSScriptRoot 'modules\ODGO.Agent\ODGO.Agent.psd1'
 if (-not (Test-Path -LiteralPath $modulePath)) { throw "Agent module not found next to Install-Agent.ps1 ('$modulePath')." }
@@ -170,16 +165,33 @@ function Assert-AgentFolderContent {
 }
 
 function Set-FolderAccess {
-    <# Replaces the access rules of a folder (inherited by its content). Writes the DACL only: Set-Acl would also try to write the SACL, which requires SeSecurityPrivilege. #>
-    param([string] $Path, [hashtable[]] $Rules)
+    <# Replaces the explicit access rules of a folder; its content inherits them. Without -Inherit, the folder doesn't
+       inherit the rules of its parent. Writes the DACL only: Set-Acl would also try to write the SACL, which requires
+       SeSecurityPrivilege. #>
+    param([string] $Path, [hashtable[]] $Rules, [switch] $Inherit)
     $acl = [System.Security.AccessControl.DirectorySecurity]::new()
-    $acl.SetAccessRuleProtection($true, $false)
-    $inherit = [System.Security.AccessControl.InheritanceFlags]'ContainerInherit, ObjectInherit'
+    $acl.SetAccessRuleProtection(-not $Inherit, $false)
+    $inheritance = [System.Security.AccessControl.InheritanceFlags]'ContainerInherit, ObjectInherit'
     foreach ($rule in $Rules) {
-        $acl.AddAccessRule([System.Security.AccessControl.FileSystemAccessRule]::new($rule.Sid, $rule.Rights, $inherit, 'None', 'Allow'))
+        $acl.AddAccessRule([System.Security.AccessControl.FileSystemAccessRule]::new($rule.Sid, $rule.Rights, $inheritance, 'None', 'Allow'))
     }
     [System.IO.FileSystemAclExtensions]::SetAccessControl([System.IO.DirectoryInfo]::new($Path), $acl)
 }
+
+function Resolve-TaskPowerShell {
+    <# pwsh.exe for the scheduled task. The MSIX package (Microsoft Store, or winget since PowerShell 7.6) can't run as
+       SYSTEM and its folder changes with each update, so the MSI (or ZIP) package is needed. #>
+    param([string] $PowerShellHome, [string] $ProgramFiles)
+    if ($PowerShellHome -notmatch '\\WindowsApps\\') { return Join-Path $PowerShellHome 'pwsh.exe' }
+    $msi = Join-Path $ProgramFiles 'PowerShell\7\pwsh.exe'
+    if ([System.IO.File]::Exists($msi)) { return $msi }
+    throw ('This PowerShell 7 is the MSIX package (Microsoft Store, or winget since PowerShell 7.6), which the scheduled task ' +
+        "can't run as SYSTEM. Install the MSI package (winget install --id Microsoft.PowerShell --source winget --installer-type wix, " +
+        'or see https://learn.microsoft.com/powershell/scripting/install/install-powershell-on-windows#install-the-msi-package), ' +
+        'then run this command again: nothing was changed.')
+}
+
+$taskPowerShell = Resolve-TaskPowerShell -PowerShellHome $PSHOME -ProgramFiles $env:ProgramFiles
 
 # The scheduled task keeps its identity and interval unless -TaskUser or -IntervalMinutes is passed.
 $taskPath = '\ODGO\'
@@ -212,31 +224,22 @@ if (-not $runAsSystem) {
     catch { throw "The task identity '$TaskUser' can't be resolved ($($_.Exception.Message)). Pass -TaskUser SYSTEM, or the DOMAIN\name$ of a group managed service account that this server can use (Test-ADServiceAccount)." }
 }
 
-# The folders of an existing installation are kept unless -InstallPath or -DataPath is passed.
+# The folder of an existing installation is kept unless -InstallPath is passed.
 $previousInstallPath = if ($existingAction) { "$($existingAction.WorkingDirectory)".TrimEnd('\') } else { '' }
-$previousDataPath = if ($existingAction -and "$($existingAction.Arguments)" -match '-ConfigPath "([^"]+)\\config\\config\.json"') { $Matches[1] } else { '' }
 if ($previousInstallPath -and -not $PSBoundParameters.ContainsKey('InstallPath')) { $InstallPath = $previousInstallPath }
-if ($previousDataPath -and -not $PSBoundParameters.ContainsKey('DataPath')) { $DataPath = $previousDataPath }
 $InstallPath = Resolve-AgentFolder -Path $InstallPath -Name 'InstallPath'
-$DataPath = Resolve-AgentFolder -Path $DataPath -Name 'DataPath'
-if ($InstallPath -ieq $DataPath -or $InstallPath.StartsWith("$DataPath\", [StringComparison]::OrdinalIgnoreCase) -or
-    $DataPath.StartsWith("$InstallPath\", [StringComparison]::OrdinalIgnoreCase)) {
-    throw "InstallPath and DataPath must be separate folders, neither inside the other (got '$InstallPath' and '$DataPath')."
-}
-Assert-AgentFolderContent -Path $InstallPath -Name 'InstallPath' -Markers @('Invoke-GatewayLogCollection.ps1', 'modules\ODGO.Agent')
-Assert-AgentFolderContent -Path $DataPath -Name 'DataPath' -Markers @('config', 'state', 'logs')
+Assert-AgentFolderContent -Path $InstallPath -Name 'InstallPath' -Markers @('Invoke-GatewayLogCollection.ps1', 'modules\ODGO.Agent', 'config\config.json')
 
-# Data written by SYSTEM, Administrators, you or the task identities (current and previous) is trusted; anything else is refused.
+# Files written by SYSTEM, Administrators, you or the task identities (current and previous) are trusted; anything else is refused.
 $trustedOwners = @('S-1-5-18', 'S-1-5-32-544', 'S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464', $currentUser.User.Value)
 if ($taskUserSid) { $trustedOwners += $taskUserSid.Value }
 if ($existingTaskUser -and $existingTaskUser -notin $systemNames) {
     try { $trustedOwners += (Resolve-AccountSid $existingTaskUser).Value } catch { $null = $_ }
 }
 Assert-TrustedFolder -Path $InstallPath -TrustedSids $trustedOwners
-Assert-TrustedFolder -Path $DataPath -TrustedSids $trustedOwners
 
 # 1. Configuration: the existing file (if any) plus the parameters, validated before anything changes.
-$configFile = Join-Path $DataPath 'config\config.json'
+$configFile = Join-Path $InstallPath 'config\config.json'
 $settings = [ordered]@{}
 if (Test-Path -LiteralPath $configFile) {
     try { $settings = Get-Content -LiteralPath $configFile -Raw | ConvertFrom-Json -AsHashtable }
@@ -259,12 +262,7 @@ elseif ($TenantId -or $ClientId) {
     if ($ClientId) { Set-ConfigValue $settings 'authentication.clientId' $ClientId.ToLowerInvariant() }
 }
 if ($PSBoundParameters.ContainsKey('ProxyUrl')) { Set-ConfigValue $settings 'network.proxyUrl' $(if ($ProxyUrl) { $ProxyUrl } else { $null }) }
-if ([System.IO.Path]::GetFullPath($DataPath).TrimEnd('\') -ine [System.IO.Path]::GetFullPath((Join-Path $env:ProgramData 'ODGO')).TrimEnd('\')) {
-    Set-ConfigValue $settings 'agent.stateDirectory' (Join-Path $DataPath 'state')
-    Set-ConfigValue $settings 'agent.logDirectory' (Join-Path $DataPath 'logs')
-    Set-ConfigValue $settings 'authentication.clientSecretPath' (Join-Path $DataPath 'config\client-secret.dat')
-}
-$configuration = Get-GwmConfiguration -InputObject $settings
+$configuration = Get-GwmConfiguration -InputObject $settings -AgentRoot $InstallPath
 $authentication = $configuration.authentication
 $configChanged = -not (Test-Path -LiteralPath $configFile) -or (($settings | ConvertTo-Json -Depth 16 -Compress) -ne $before)
 
@@ -281,26 +279,20 @@ elseif ($secret -or $UpdateSecret) {
     throw "-ClientSecret and -UpdateSecret apply to client secret authentication; this agent uses $($authentication.mode)."
 }
 
-# 3. Agent folder: SYSTEM and Administrators full control, everyone else read and execute, because the scheduled task
-#    runs the agent as SYSTEM. The files are copied after the access rules are set, so that they inherit them. The
-#    copy is skipped when the installed copy of this script runs, for example with -UpdateSecret.
-$systemSid = [System.Security.Principal.SecurityIdentifier]::new('S-1-5-18')
-$administratorsSid = [System.Security.Principal.SecurityIdentifier]::new('S-1-5-32-544')
-$installRules = @(@{ Sid = $systemSid; Rights = 'FullControl' }, @{ Sid = $administratorsSid; Rights = 'FullControl' },
-    @{ Sid = [System.Security.Principal.SecurityIdentifier]::new('S-1-5-32-545'); Rights = 'ReadAndExecute' })
-$dataRules = @(@{ Sid = $systemSid; Rights = 'FullControl' }, @{ Sid = $administratorsSid; Rights = 'FullControl' })
-if (-not $runAsSystem) {
-    $installRules += @{ Sid = $taskUserSid; Rights = 'ReadAndExecute' }
-    $dataRules += @{ Sid = $taskUserSid; Rights = 'Modify' }
-}
+# 3. Agent folder: only SYSTEM, Administrators and the task identity can open it, because the scheduled task runs the
+#    agent as SYSTEM and the folder holds the client secret. The files are copied after the access rules are set, so
+#    that they inherit them. The copy is skipped when the installed copy of this script runs, for example with
+#    -UpdateSecret.
+$folderRules = @(@{ Sid = [System.Security.Principal.SecurityIdentifier]::new('S-1-5-18'); Rights = 'FullControl' },
+    @{ Sid = [System.Security.Principal.SecurityIdentifier]::new('S-1-5-32-544'); Rights = 'FullControl' })
+if (-not $runAsSystem) { $folderRules += @{ Sid = $taskUserSid; Rights = 'ReadAndExecute' } }
 if (-not $isElevated) {
     # Non-elevated run (-SkipElevationCheck, used by the tests): keep access for the current user.
-    $installRules += @{ Sid = $currentUser.User; Rights = 'Modify' }
-    $dataRules += @{ Sid = $currentUser.User; Rights = 'Modify' }
+    $folderRules += @{ Sid = $currentUser.User; Rights = 'Modify' }
 }
-if ($PSCmdlet.ShouldProcess($InstallPath, 'Create the agent folder, restricted to SYSTEM and Administrators (read for users)')) {
+if ($PSCmdlet.ShouldProcess($InstallPath, "Create the agent folder, restricted to SYSTEM, Administrators$(if (-not $runAsSystem) { " and $TaskUser" })")) {
     [void][System.IO.Directory]::CreateDirectory($InstallPath)
-    Set-FolderAccess -Path $InstallPath -Rules $installRules
+    Set-FolderAccess -Path $InstallPath -Rules $folderRules
 }
 $sameFolder = [System.IO.Path]::GetFullPath($PSScriptRoot).TrimEnd('\') -ieq $InstallPath
 if (-not $sameFolder -and $PSCmdlet.ShouldProcess($InstallPath, 'Install agent files')) {
@@ -314,14 +306,15 @@ if (-not $sameFolder -and $PSCmdlet.ShouldProcess($InstallPath, 'Install agent f
     Get-ChildItem -LiteralPath $InstallPath -Recurse -File -Include '*.ps1', '*.psm1', '*.psd1' | Unblock-File
 }
 
-# 4. Data folders: SYSTEM and Administrators full control, task identity modify, nobody else. The subfolders are
-#    created after the access rules are set, so that they inherit them.
-if ($PSCmdlet.ShouldProcess($DataPath, "Create the data folder, restricted to SYSTEM, Administrators$(if (-not $runAsSystem) { " and $TaskUser" })")) {
-    [void][System.IO.Directory]::CreateDirectory($DataPath)
-    Set-FolderAccess -Path $DataPath -Rules $dataRules
-}
-foreach ($folder in @((Join-Path $DataPath 'config'), (Join-Path $DataPath 'state'), (Join-Path $DataPath 'logs'))) {
-    if ($PSCmdlet.ShouldProcess($folder, 'Create data folder')) { [void][System.IO.Directory]::CreateDirectory($folder) }
+# 4. Configuration, state and logs folders. A task identity other than SYSTEM can also write the state and logs.
+$writerRules = @()
+if (-not $runAsSystem) { $writerRules += @{ Sid = $taskUserSid; Rights = 'Modify' } }
+foreach ($name in @('config', 'state', 'logs')) {
+    $folder = Join-Path $InstallPath $name
+    if ($PSCmdlet.ShouldProcess($folder, 'Create folder')) {
+        [void][System.IO.Directory]::CreateDirectory($folder)
+        if ($name -ne 'config') { Set-FolderAccess -Path $folder -Rules $writerRules -Inherit }
+    }
 }
 
 # 5. Configuration file and secret.
@@ -331,21 +324,21 @@ if ($configChanged -and $PSCmdlet.ShouldProcess($configFile, 'Write configuratio
 if ($secret -and $PSCmdlet.ShouldProcess($authentication.clientSecretPath, 'Store the client secret (DPAPI, machine scope)')) {
     Set-GwmClientSecret -Secret $secret -Path $authentication.clientSecretPath
 }
-$staleSecret = Join-Path $DataPath 'config\client-secret.dat'
-if ($authentication.mode -ne 'ClientSecret' -and (Test-Path -LiteralPath $staleSecret) -and $PSCmdlet.ShouldProcess($staleSecret, 'Remove the unused client secret')) {
+$staleSecret = $authentication.clientSecretPath
+if ($authentication.mode -ne 'ClientSecret' -and $staleSecret -and (Test-Path -LiteralPath $staleSecret) -and $PSCmdlet.ShouldProcess($staleSecret, 'Remove the unused client secret')) {
     Remove-Item -LiteralPath $staleSecret -Force
 }
 
 # 6. Scheduled task: registered when it's missing, when -TaskUser or -IntervalMinutes is passed, or when its command
-#    changed (other install or data folder, missing pwsh.exe). Otherwise it's kept as is.
-$arguments = '-NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -File "{0}" -ConfigPath "{1}" -Trigger Scheduled -Quiet' -f (Join-Path $InstallPath 'Invoke-GatewayLogCollection.ps1'), $configFile
+#    changed (other agent folder or PowerShell). Otherwise it's kept as is.
+$arguments = '-NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -File "{0}" -Trigger Scheduled -Quiet' -f (Join-Path $InstallPath 'Invoke-GatewayLogCollection.ps1')
 $existingExecutable = "$($existingAction.Execute)"
 $registerTask = -not $existingTask -or $PSBoundParameters.ContainsKey('IntervalMinutes') -or $PSBoundParameters.ContainsKey('TaskUser') -or
-    "$($existingAction.Arguments)" -ne $arguments -or -not $existingExecutable -or -not [System.IO.File]::Exists($existingExecutable)
+    "$($existingAction.Arguments)" -ne $arguments -or $existingExecutable -ine $taskPowerShell -or -not [System.IO.File]::Exists($existingExecutable)
 $taskMessage = "$taskPath$taskName, every $IntervalMinutes minutes as $TaskUser"
 if (-not $registerTask) { $taskMessage += ' (kept)' }
 elseif ($PSCmdlet.ShouldProcess("$taskPath$taskName", "Register scheduled task (every $IntervalMinutes minutes as $TaskUser)")) {
-    $action = New-ScheduledTaskAction -Execute (Join-Path $PSHOME 'pwsh.exe') -Argument $arguments -WorkingDirectory $InstallPath
+    $action = New-ScheduledTaskAction -Execute $taskPowerShell -Argument $arguments -WorkingDirectory $InstallPath
     $trigger = New-ScheduledTaskTrigger -Once -At ([DateTime]::Now.AddMinutes(2)) -RepetitionInterval (New-TimeSpan -Minutes $IntervalMinutes) -RandomDelay (New-TimeSpan -Seconds 120)
     # A group managed service account uses LogonType Password: Windows retrieves its password from Active Directory.
     $taskPrincipal = if ($runAsSystem) { New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest }
@@ -359,15 +352,12 @@ if ($WhatIfPreference) { return }
 
 Write-Host ''
 Write-Host 'ODGO agent installed.' -ForegroundColor Green
-Write-Host "  Agent files    : $InstallPath"
+Write-Host "  Agent folder   : $InstallPath"
 Write-Host "  Configuration  : $configFile"
-Write-Host "  Agent logs     : $(Join-Path $DataPath 'logs')"
+Write-Host "  Agent logs     : $($configuration.agent.logDirectory)"
 Write-Host "  Scheduled task : $taskMessage"
 if ($previousInstallPath -and $previousInstallPath -ine $InstallPath) {
-    Write-Warning "The agent now runs from '$InstallPath'. The previous agent folder '$previousInstallPath' isn't used anymore: you can delete it."
-}
-if ($previousDataPath -and $previousDataPath -ine $DataPath) {
-    Write-Warning "The agent now uses the data folder '$DataPath'. The previous one, '$previousDataPath', isn't used anymore: delete it once the agent works."
+    Write-Warning "The agent now runs from '$InstallPath'. The previous agent folder '$previousInstallPath' isn't used anymore: delete it, with the configuration and client secret it contains."
 }
 
 # 7. Connection test (as the current administrator; the scheduled task runs as $TaskUser).
@@ -376,9 +366,7 @@ if (-not $SkipTest) {
     Write-Host 'Testing the configuration, authentication and OneLake write access...'
     & (Join-Path $InstallPath 'Invoke-GatewayLogCollection.ps1') -Test -ConfigPath $configFile
     if ($LASTEXITCODE -ne 0) {
-        $testCommand = "& '$(Join-Path $InstallPath 'Invoke-GatewayLogCollection.ps1')' -Test"
-        if ($configFile -ine [System.IO.Path]::GetFullPath((Join-Path $env:ProgramData 'ODGO\config\config.json'))) { $testCommand += " -ConfigPath '$configFile'" }
-        Write-Warning "The test failed: fix the issues above, then run: $testCommand"
+        Write-Warning "The test failed: fix the issues above, then run: pwsh -File '$(Join-Path $InstallPath 'Invoke-GatewayLogCollection.ps1')' -Test"
         exit 1
     }
 }

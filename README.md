@@ -59,29 +59,32 @@ What's in the box:
 
 ## Getting started
 
-You need a Fabric workspace on a capacity (F SKU or trial) and PowerShell 7 on the gateway servers. The full guide,
-with prerequisites and tenant settings, is [docs/setup.md](docs/setup.md).
+You need a Fabric workspace on a capacity (F SKU or trial) and PowerShell 7 (MSI package) on the gateway servers. The
+full guide, with prerequisites and tenant settings, is [docs/setup.md](docs/setup.md).
 
-1. **Create an identity for the agents:** a Microsoft Entra app registration with a client secret. On Azure VMs and
-   Azure Arc-enabled servers you can use the server's managed identity instead.
+1. **Create an identity for the agents:** a Microsoft Entra app registration with a client secret; copy its
+   Application (client) ID. On Azure VMs and Azure Arc-enabled servers you can use the server's managed identity
+   instead.
 2. **Give it access to the workspace, before the next step:** in the workspace, select **Manage access** > **Add
    people or groups**, type the name of the app registration and give it the **Contributor** role.
 3. **Set up Fabric:** import [fabric/ODGO_Setup.ipynb](fabric/ODGO_Setup.ipynb) into the workspace (**Import** >
-   **Notebook**) and select **Run all**. The notebook creates the lakehouse, notebooks, schedules, semantic model and
-   report, then prints the install command, completed with the IDs of the workspace, the lakehouse, your tenant and
-   the app registration found in step 2.
-4. **Install the agent on each gateway server:** paste the printed lines into PowerShell 7 run as administrator:
+   **Notebook**) and select **Run all**. In a minute or two, the notebook creates the lakehouse, notebooks, schedules,
+   semantic model and report, starts the first ingestion in the background, then prints the install command with the
+   IDs of the workspace, the lakehouse and your tenant.
+4. **Install the agent on each gateway server:** paste the printed lines into PowerShell run as administrator, after
+   replacing `<client-id>` with the Application (client) ID of the app registration:
 
    ```powershell
-   Invoke-WebRequest 'https://github.com/Pulsweb/ODGO/archive/refs/heads/main.zip' -OutFile odgo.zip
+   Set-Location $env:TEMP
+   Invoke-WebRequest 'https://github.com/Pulsweb/ODGO/archive/refs/heads/main.zip' -OutFile odgo.zip -UseBasicParsing
    Remove-Item odgo -Recurse -Force -ErrorAction Ignore; Expand-Archive odgo.zip odgo
    $installer = (Get-ChildItem odgo -Recurse -Filter Install-Agent.ps1 | Select-Object -First 1).FullName
-   & $installer -InstallPath "$env:ProgramFiles\ODGO" -WorkspaceId <workspace-id> -LakehouseId <lakehouse-id> -TenantId <tenant-id> -ClientId <client-id>
+   pwsh -NoProfile -File $installer -InstallPath "$env:ProgramFiles\ODGO" -WorkspaceId <workspace-id> -LakehouseId <lakehouse-id> -TenantId <tenant-id> -ClientId <client-id>
    ```
 
-   The installer copies the agent to the `-InstallPath` folder (change it to install elsewhere, for example
-   `D:\ODGO`), asks for the client secret, stores it encrypted, registers the scheduled task and tests the connection
-   to OneLake.
+   The installer creates the `-InstallPath` folder (change it to install elsewhere, for example `D:\ODGO`), which
+   holds the agent, its configuration, state and logs. It asks for the client secret, stores it encrypted, registers
+   the scheduled task and tests the connection to OneLake.
 
 Open the *Gateway Monitor* report: each server appears on the *Ingestion Health* page once `nb_gwmon_ingest` has
 processed its first upload. It runs every 6 hours; run it yourself in the workspace to see the data sooner. To

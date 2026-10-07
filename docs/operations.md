@@ -26,20 +26,21 @@ depends on the data volume and the capacity. No latency measurements are publish
 
 ## Agent
 
-The commands use the default agent folder, `%ProgramFiles%\ODGO`. If you installed the agent with another
-`-InstallPath`, use that folder instead.
+The agent folder (`%ProgramFiles%\ODGO` unless you installed the agent with another `-InstallPath`) holds the agent,
+its configuration (`config`), state (`state`) and logs (`logs`). Run the commands below as administrator, in Windows
+PowerShell or PowerShell 7.
 
 | Task | How |
 |---|---|
-| Test the configuration, identity and OneLake access | `& "$env:ProgramFiles\ODGO\Invoke-GatewayLogCollection.ps1" -Test` |
+| Test the configuration, identity and OneLake access | `pwsh -File "$env:ProgramFiles\ODGO\Invoke-GatewayLogCollection.ps1" -Test` |
 | Run now | `Start-ScheduledTask -TaskPath '\ODGO\' -TaskName 'Collect Gateway Logs'` |
-| See what would be uploaded | `Invoke-GatewayLogCollection.ps1 -PlanOnly` (no upload, no state change) |
-| Read the logs | `%ProgramData%\ODGO\logs\agent-yyyyMMdd.jsonl`, one JSON object per line: `Get-Content <file> \| ConvertFrom-Json \| Where-Object level -ne 'Debug'` |
+| See what would be uploaded | `pwsh -File "$env:ProgramFiles\ODGO\Invoke-GatewayLogCollection.ps1" -PlanOnly` (no upload, no state change) |
+| Read the logs | `logs\agent-yyyyMMdd.jsonl` in the agent folder, one JSON object per line: `Get-Content <file> \| ConvertFrom-Json \| Where-Object level -ne 'Debug'` |
 | Exit codes | `0` succeeded, `1` partially succeeded (retried next run), `2` failed, `3` configuration error, `4` another run is in progress |
-| Rotate the client secret | Create a new secret on the app registration, then run `& "$env:ProgramFiles\ODGO\Install-Agent.ps1" -UpdateSecret` on each server. Delete the old secret afterwards |
-| Change a setting | Edit `%ProgramData%\ODGO\config\config.json` ([configuration.md](configuration.md#agent-configuration)), then run `-Test` |
+| Rotate the client secret | Create a new secret on the app registration, then run `pwsh -File "$env:ProgramFiles\ODGO\Install-Agent.ps1" -UpdateSecret` on each server. Delete the old secret afterwards |
+| Change a setting | Edit `config\config.json` in the agent folder ([configuration.md](configuration.md#agent-configuration)), then run `-Test` |
 | Upgrade | Run the `Install-Agent.ps1` of the new version without parameters ([setup.md](setup.md#upgrade)) |
-| Remove | `Uninstall-Agent.ps1` (add `-RemoveData` to delete configuration, secret, state and logs) |
+| Remove | `pwsh -File "$env:ProgramFiles\ODGO\Uninstall-Agent.ps1"` (add `-RemoveData` to also delete the configuration, secret, state and logs) |
 
 **Add a gateway server:** install the agent with the same command ([setup.md](setup.md#4-install-the-agent-on-each-gateway-server)).
 With managed identities, first add the new server's identity to the workspace. The server appears on the
@@ -99,11 +100,13 @@ Start with the tool that matches the layer:
 | `AADSTS7000215` or `AADSTS7000222` | Wrong or expired client secret | Create a new secret and run `Install-Agent.ps1 -UpdateSecret` |
 | `AADSTS700016` or `AADSTS90002` | Wrong client ID or tenant ID | Run `Install-Agent.ps1 -TenantId … -ClientId …` with the right values |
 | `Client secret file … not found` or `Cannot read the client secret` | No secret stored, or the file was copied from another server | Run `Install-Agent.ps1 -UpdateSecret` |
-| Installer: `'…' is owned by …, not by SYSTEM, Administrators, you or the task identity` | The data folder already existed and was created or changed by another account, which could read the secret | Check the folder. Delete it, or make Administrators its owner with the `takeown` command in the message, then run the installer again |
+| Installer: `'…' is owned by …, not by SYSTEM, Administrators, you or the task identity` | The agent folder already existed and was created or changed by another account, which could replace the agent or read the secret | Check the folder. Delete it, or make Administrators its owner with the `takeown` command in the message, then run the installer again |
+| Installer: `This PowerShell 7 is the MSIX package` | PowerShell 7 comes from the Microsoft Store or from winget's default package, which the scheduled task can't run as SYSTEM | Install the MSI package with the command in the message, then run the installer again |
+| `pwsh` isn't recognized | PowerShell 7 isn't installed, or the window was opened before its installation | Install PowerShell 7 (MSI package) and open a new window |
 | Installer: `The task identity '…' can't be resolved` | `-TaskUser`, or the identity of the existing scheduled task, isn't a valid group managed service account for this server | Pass `-TaskUser DOMAIN\name$` (check it with `Test-ADServiceAccount`) or `-TaskUser SYSTEM` |
 | Managed identity: `… only on Azure VMs and Azure Arc-enabled servers` | The server has no managed identity | Use an app registration with a client secret |
 | HTTP 401 or 403 from OneLake | The identity isn't Contributor of the workspace, the role was granted a few minutes ago, or a tenant setting is off | Check **Manage access**, wait a few minutes, check the tenant settings in [setup.md](setup.md#prerequisites) |
-| HTTP 404 on the landing folder | Wrong workspace or lakehouse ID, or the setup notebook hasn't run `nb_gwmon_ingest` yet | Run `nb_gwmon_ingest` once, then check the IDs printed by the setup notebook |
+| HTTP 404 on the landing folder | Wrong workspace or lakehouse ID, or the first run of `nb_gwmon_ingest` hasn't completed yet (it creates the folder) | Check that `nb_gwmon_ingest` has run once, then check the IDs printed by the setup notebook |
 | Timeouts, name resolution or TLS errors | Proxy required or endpoints blocked | Run `Install-Agent.ps1 -ProxyUrl http://proxy:port`. Allow `login.microsoftonline.com` and the OneLake endpoint. A TLS-inspecting proxy's root certificate must be trusted by the machine |
 | `Gateway log folder … not found` | Gateway not installed, service name differs, or a group managed service account can't read the gateway service profile | Set `sources[].logPath` (and `reportPath`), or grant read access to the folder |
 | A log type is never uploaded | Disabled type (`gateway-network` is off by default), files older than `initialBackfillDays` when first seen, `Report` folder moved, or personal-mode gateway | Enable the log type or set `reportPath`. To backfill, see [Backfill and reprocessing](#backfill-and-reprocessing) |
@@ -115,11 +118,9 @@ Start with the tool that matches the layer:
 | Symptom | Fix |
 |---|---|
 | `This workspace isn't assigned to a Fabric capacity` | Assign a capacity in the workspace settings (**License info**) and run the notebook again |
-| Warning `No app registration or managed identity has access to this workspace`, and the printed command ends with `-ClientId <client-id>` | Add the app registration of the agents as Contributor in **Manage access** ([setup.md](setup.md#2-give-the-identity-access-to-the-workspace)) and run the notebook again. If you added a security group instead, replace `<client-id>` with the **Application (client) ID** shown on the app registration's **Overview** page |
-| Warning `… has the Viewer role on this workspace` | The agents can't upload with Viewer: change the role to Contributor in **Manage access** |
 | Download of `source` fails | Fabric must reach GitHub. Otherwise set `source` to a `.zip` file the notebook can read |
 | HTTP 403 while creating items | You need the Admin or Member role on the workspace |
-| Warning `Semantic model framing failed` | The model is framed again automatically when the Gold tables change; check its refresh history after the next ingest run |
+| The report shows errors right after the setup | The first run of `nb_gwmon_ingest`, started by the setup, hasn't created the tables yet. Wait a few minutes and check the run in the Monitor hub. If it failed, or if the setup warned that it couldn't start it, run `nb_gwmon_ingest` yourself |
 | Every step succeeded but the report is empty | Normal until an agent has uploaded data and `nb_gwmon_ingest` has processed it (every 6 hours by default). To see the data sooner, run `nb_gwmon_ingest` yourself |
 
 The setup can be run again safely: it updates the existing items, matched by name.
@@ -145,4 +146,4 @@ The setup can be run again safely: it updates the existing items, matched by nam
 | Visuals fail for some readers only | Single sign-on: those readers can't read the lakehouse | Bind the model to a fixed identity ([setup.md](setup.md#share-the-report)) |
 | Visuals fail for everyone after growth | Direct Lake [guardrails](https://learn.microsoft.com/fabric/fundamentals/direct-lake-overview#fabric-capacity-requirements) of the capacity SKU; Direct Lake on OneLake doesn't fall back to DirectQuery | Check the maintenance runs, lower `gold.windowDays` or use a larger SKU |
 | Times differ from the server's local time | Everything is stored in UTC | Each server's time zone and UTC offset are in the `Servers` table |
-| New data doesn't appear | Automatic updates are off on the model, or the last framing failed | Turn automatic updates on, or set `semanticModel.reframeAfterGold` to `true`. Check the refresh history |
+| New data doesn't appear | The reframe at the end of `nb_gwmon_ingest` failed (the run output shows a warning), or `semanticModel.reframeAfterGold` is `false` and automatic updates are off on the model | Check the model's refresh history, then run `nb_gwmon_ingest` again |

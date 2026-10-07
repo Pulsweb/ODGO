@@ -12,16 +12,16 @@ First public version of ODGO (On-premises Data Gateway Observability), planned a
 ### Added
 
 * **Setup notebook** `fabric/ODGO_Setup.ipynb`: imported and run in a Fabric workspace, it creates or upgrades the
-  lakehouse, the notebooks and their schedules, the semantic model and the report, then prints the agent install
-  command, completed with the app registration it finds in the workspace's **Manage access**.
+  lakehouse, the notebooks and their schedules, the semantic model and the report in a minute or two, starts the
+  first ingestion in the background, then prints the agent install command.
 * **Gateway agent** (PowerShell 7 module and scripts):
   * record-aligned incremental segments for all 12 gateway log types;
   * crash-safe commit protocol (journal, staging and rename, manifest, checkpoint) with idempotent uploads;
   * app registration client secret stored encrypted with DPAPI, or managed identity (Azure VM, Azure Arc-enabled
     server detected automatically);
-  * `Install-Agent.ps1`: one command that installs or upgrades the agent in the folder of your choice
-    (`-InstallPath`), writes its configuration, stores the secret, registers the scheduled task and tests the
-    connection;
+  * `Install-Agent.ps1`: one command, which can be pasted in Windows PowerShell or PowerShell 7, that installs or
+    upgrades the agent in one folder of your choice (`-InstallPath`) with its configuration, secret, state and logs,
+    registers the scheduled task and tests the connection;
   * `Invoke-GatewayLogCollection.ps1 -Test` and `-PlanOnly`, multiple gateways per server, telemetry outbox.
 * **Lakehouse processing:** `nb_gwmon_lib` (table contracts and logic), `nb_gwmon_ingest` (Bronze, Silver and Gold,
   every 6 hours) and `nb_gwmon_maintenance` (retention, `OPTIMIZE`/`VACUUM` and validation, once a day), with manifest

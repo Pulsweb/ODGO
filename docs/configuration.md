@@ -5,7 +5,7 @@ Every setting has a default, so a standard installation needs no configuration f
 | Settings | Where | Written by |
 |---|---|---|
 | [Setup notebook parameters](#setup-notebook-parameters) (optional) | First code cell of `ODGO_Setup` | You, before **Run all** |
-| [Agent configuration](#agent-configuration) | `%ProgramData%\ODGO\config\config.json` on each gateway server | `Install-Agent.ps1` |
+| [Agent configuration](#agent-configuration) | `config\config.json` in the agent folder (`%ProgramFiles%\ODGO` by default) on each gateway server | `Install-Agent.ps1` |
 | [Processing configuration](#processing-configuration-processingjson) | `Files/gateway-monitor/config/processing.json` in `lh_gateway_monitor` | `nb_gwmon_ingest`, with the defaults, on its first run |
 | [Gateway overrides](#gateway-overrides-gateway-overridesjson) (optional) | `Files/gateway-monitor/config/gateway-overrides.json` | You |
 
@@ -17,14 +17,15 @@ The defaults suit most installations.
 |---|---|---|
 | `source` | `main` branch archive on GitHub | ODGO version to install: the URL of a repository `.zip` (branch or release), or a `.zip` file or repository folder readable by the notebook |
 | `ingest_interval_minutes` | `360` | How often `nb_gwmon_ingest` runs, in minutes (every 6 hours). Above 360, also raise `gold.lateAfterMinutes` (see [processing configuration](#processing-configuration-processingjson)) |
-| `run_first_ingestion` | `True` | Run `nb_gwmon_ingest` once during the setup (creates the tables) and frame the semantic model |
 
+The setup also starts a first run of `nb_gwmon_ingest`, which creates the tables and frames the semantic model.
 `nb_gwmon_maintenance` runs once a day, between two runs of `nb_gwmon_ingest`. The schedules can also be changed later
 in the schedule settings of each notebook.
 
 ## Agent configuration
 
-`Install-Agent.ps1` writes only the values you pass to it, for example:
+`Install-Agent.ps1` writes only the values you pass to it in `config\config.json`, in the agent folder (the
+`-InstallPath` of the install command, `%ProgramFiles%\ODGO` by default). For example:
 
 ```json
 {
@@ -34,13 +35,12 @@ in the schedule settings of each notebook.
 ```
 
 Every other key takes the default listed below. To change a setting, edit the file as an administrator, then check
-it with:
+it with (use your agent folder):
 
 ```powershell
-& "$env:ProgramFiles\ODGO\Invoke-GatewayLogCollection.ps1" -Test
+pwsh -File "$env:ProgramFiles\ODGO\Invoke-GatewayLogCollection.ps1" -Test
 ```
 
-* `%ProgramFiles%\ODGO` is the default agent folder: use yours if you installed the agent with another `-InstallPath`.
 * Keys are camelCase. Unknown keys are rejected, so typos fail fast.
 * Environment variables in paths, such as `%ProgramData%`, are expanded.
 * Running `Install-Agent.ps1` again keeps your edits: it only changes the values passed as parameters.
@@ -50,8 +50,8 @@ it with:
 | Key | Default | Description |
 |---|---|---|
 | `environment` | `prod` | Label written to the landing paths (`raw/environment=<value>/…`) and to the `Environment` column of the model |
-| `agent.stateDirectory` | `%ProgramData%\ODGO\state` | Checkpoint, journal, telemetry outbox, agent instance ID |
-| `agent.logDirectory` | `%ProgramData%\ODGO\logs` | JSON-lines run logs `agent-yyyyMMdd.jsonl` |
+| `agent.stateDirectory` | `state` in the agent folder | Checkpoint, journal, telemetry outbox, agent instance ID |
+| `agent.logDirectory` | `logs` in the agent folder | JSON-lines run logs `agent-yyyyMMdd.jsonl` |
 | `agent.logLevel` | `Information` | `Debug`, `Information`, `Warning`, `Error` |
 | `agent.logRetentionDays` | `30` | Local log retention |
 | `agent.maxRunMinutes` | `45` | No new upload starts after this duration; the next run continues |
@@ -76,7 +76,7 @@ it with:
 |---|---|---|
 | `authentication.mode` | `ClientSecret` | `ClientSecret`, `ManagedIdentity` (Azure VM or Azure Arc-enabled server, detected automatically) or `None` (`LocalFolder` only) |
 | `authentication.tenantId` / `clientId` | — | Tenant and app registration (`-TenantId` / `-ClientId`) |
-| `authentication.clientSecretPath` | `%ProgramData%\ODGO\config\client-secret.dat` | Client secret encrypted with DPAPI (machine scope). Written by `Install-Agent.ps1`; it can only be decrypted on this server |
+| `authentication.clientSecretPath` | `config\client-secret.dat` in the agent folder | Client secret encrypted with DPAPI (machine scope). Written by `Install-Agent.ps1`; it can only be decrypted on this server |
 | `authentication.managedIdentityClientId` | — | User-assigned managed identity on an Azure VM (`-ManagedIdentityClientId`) |
 | `authentication.authorityHost` | `https://login.microsoftonline.com` | Sovereign clouds |
 | `authentication.resource` | `https://storage.azure.com/` | Token audience. OneLake accepts only the Storage audience |
@@ -179,7 +179,7 @@ defaults; invalid values stop the run with a message that lists them.
 | `redaction` | `enabled`, `rules[]` | connection-string secrets, bearer tokens | Regex rules (`name`, `pattern`, `replacement`, `columns`) applied in Silver to the listed text columns |
 | `retention` | `rawDays`, `manifestDays`, `telemetryDays`, `stagingDays`, `bronzeDays`, `silverDays`, `opsDays`, `quarantineDays`, `vacuumHours` | `30`, `90`, `90`, `2`, `30`, `400`, `400`, `90`, `168` | Applied by `nb_gwmon_maintenance`. `vacuumHours` can't be lower than 168 |
 | `maintenance` | `optimizeLayers`, `vacuumLayers`, `optimizeRecentPartitionsOnly`, `recentPartitionDays` | all layers, `true`, `45` | `OPTIMIZE` (V-Order on Gold) and `VACUUM` |
-| `semanticModel` | `name`, `reframeAfterGold` | `Gateway Monitor`, `false` | Explicit reframe at the end of the Gold build (also notebook parameter `reframe_semantic_model`) |
+| `semanticModel` | `name`, `reframeAfterGold` | `Gateway Monitor`, `true` | Reframe the semantic model at the end of each `nb_gwmon_ingest` run, so that the report shows the new data at once (also notebook parameter `reframe_semantic_model`) |
 | `validation` | `failOnError`, `maxParquetFilesPerTable`, `freshnessMinutes` | `false`, `1000`, `480` | Thresholds of the validation checks run by `nb_gwmon_maintenance` |
 
 ### Notebook parameters

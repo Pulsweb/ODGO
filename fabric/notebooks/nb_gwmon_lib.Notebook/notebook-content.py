@@ -212,7 +212,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "optimizeRecentPartitionsOnly": True,
         "recentPartitionDays": 45,
     },
-    "semanticModel": {"name": "Gateway Monitor", "reframeAfterGold": False},
+    "semanticModel": {"name": "Gateway Monitor", "reframeAfterGold": True},
     "validation": {"failOnError": False, "maxParquetFilesPerTable": 1000, "freshnessMinutes": 480},
 }
 

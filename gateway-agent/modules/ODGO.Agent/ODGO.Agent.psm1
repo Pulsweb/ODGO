@@ -4,6 +4,9 @@ $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 
 $script:GwmModuleRoot = $PSScriptRoot
+# Agent folder: the module is installed in <agent folder>\modules\ODGO.Agent. The default paths of the configuration,
+# client secret, state and logs are in this folder.
+$script:GwmAgentRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 $script:GwmAgentVersion = $null
 $script:GwmLog = $null
 $script:GwmTokenCache = @{}

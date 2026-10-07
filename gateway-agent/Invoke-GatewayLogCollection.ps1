@@ -9,7 +9,7 @@
     With -Test: 0 when every check passed (warnings allowed), 1 otherwise.
 
 .PARAMETER ConfigPath
-    Agent configuration file. Default: %ProgramData%\ODGO\config\config.json
+    Agent configuration file. Default: config\config.json in the agent folder (the folder of this script).
 
 .PARAMETER Test
     Checks the configuration, gateway discovery, authentication and OneLake write access (a small file is written and
@@ -34,7 +34,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string] $ConfigPath = (Join-Path $env:ProgramData 'ODGO\config\config.json'),
+    [string] $ConfigPath = (Join-Path $PSScriptRoot 'config\config.json'),
     [switch] $Test,
     [ValidateSet('Scheduled', 'Manual', 'Test')][string] $Trigger = 'Manual',
     [ValidateSet('Debug', 'Information', 'Warning', 'Error')][string] $LogLevel,
