@@ -46,9 +46,10 @@ before merging; it isn't published in this repository. In your pull request, des
   }
   ```
 
-  Don't open the `.pbip` files: the semantic model uses Direct Lake, so Power BI Desktop asks for a semantic model in
-  a workspace and offers to overwrite it with the definition of the repository, whose workspace and lakehouse IDs are
-  placeholders. That would break the model and its reports until you run the setup notebook again.
+  Don't open `definition.pbir`: it references the semantic model folder, and the model uses Direct Lake, so Power BI
+  Desktop asks for a semantic model in a workspace and offers to overwrite it with the definition of the repository,
+  whose workspace and lakehouse IDs are placeholders. That would break the model and its reports until you run the
+  setup notebook again.
 
 ## Conventions
 

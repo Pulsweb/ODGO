@@ -173,13 +173,13 @@ defaults; invalid values stop the run with a message that lists them.
 | | `gatewayInclude` | `[]` | Optional allow-list of gateway IDs (empty = all) |
 | | `retiredServers` | `[]` | Server IDs or names of decommissioned agents. They're removed from the *Ingestion Health* status (otherwise they stay *Missing*) |
 | | `inactiveAfterDays` | `14` | Gateways without data for this long get `Status = Inactive` |
-| | `expectedUploadIntervalMinutes` / `lateAfterMinutes` / `missingAfterMinutes` | `15` / `480` / `1440` | Thresholds of the *Upload Status* (OK, Late, Missing, Failing). The report compares the last processed heartbeat with the current time, so `lateAfterMinutes` must stay longer than the interval of `nb_gwmon_ingest`. If you schedule it more often, you can lower them to detect a silent server sooner |
+| | `expectedUploadIntervalMinutes` / `lateAfterMinutes` / `missingAfterMinutes` | `15` / `480` / `1440` | Thresholds of the *Upload Status* (OK, Late, Missing, Failing). The reports compare the last processed heartbeat with the current time, so `lateAfterMinutes` must stay longer than the interval of `nb_gwmon_ingest`. If you schedule it more often, you can lower them to detect a silent server sooner |
 | | `ingestionWindowDays` | `30` | History of the ingestion-health tables |
 | | `calendarFutureYears` | `0` | Extra years in `gold.calendar` |
 | `redaction` | `enabled`, `rules[]` | connection-string secrets, bearer tokens | Regex rules (`name`, `pattern`, `replacement`, `columns`) applied in Silver to the listed text columns |
 | `retention` | `rawDays`, `manifestDays`, `telemetryDays`, `stagingDays`, `bronzeDays`, `silverDays`, `opsDays`, `quarantineDays`, `vacuumHours` | `30`, `90`, `90`, `2`, `30`, `400`, `400`, `90`, `168` | Applied by `nb_gwmon_maintenance`. `vacuumHours` can't be lower than 168 |
 | `maintenance` | `optimizeLayers`, `vacuumLayers`, `optimizeRecentPartitionsOnly`, `recentPartitionDays` | all layers, `true`, `45` | `OPTIMIZE` (V-Order on Gold) and `VACUUM` |
-| `semanticModel` | `name`, `reframeAfterGold` | `ODGO Model`, `true` | Reframe the semantic model at the end of each `nb_gwmon_ingest` run, so that the report shows the new data at once (also notebook parameter `reframe_semantic_model`) |
+| `semanticModel` | `name`, `reframeAfterGold` | `ODGO Model`, `true` | Reframe the semantic model at the end of each `nb_gwmon_ingest` run, so that the reports show the new data at once (also notebook parameter `reframe_semantic_model`) |
 | `validation` | `failOnError`, `maxParquetFilesPerTable`, `freshnessMinutes` | `false`, `1000`, `480` | Thresholds of the validation checks run by `nb_gwmon_maintenance` |
 
 ### Notebook parameters

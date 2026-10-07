@@ -46,7 +46,7 @@ after the gateways have rotated their own files.
 |---|---|
 | **Supported** | Microsoft **On-premises data gateway** in standard mode, on Windows servers. Clusters spread over several servers |
 | **Not in scope** | **VNet data gateways** (a Microsoft-managed service: there is no server to install the agent on) and personal-mode gateways |
-| **Not collected** | Service-side data such as Power BI refresh history, Fabric capacity metrics or audit logs. ODGO reads logs writen on the server by the gateway  |
+| **Not collected** | Service-side data such as Power BI refresh history, Fabric capacity metrics or audit logs: ODGO only reads the files that the gateway writes on its servers |
 
 What's in the box:
 
@@ -54,8 +54,8 @@ What's in the box:
 |---|---|
 | Collection agent ([gateway-agent/](gateway-agent/)) | PowerShell 7 scheduled task, every 15 minutes. Uploads only new, complete records of 12 gateway log types (11 on by default). Crash-safe and idempotent: re-running never duplicates data |
 | Setup notebook ([fabric/ODGO_Setup.ipynb](fabric/ODGO_Setup.ipynb)) | Imported and run once in a Fabric workspace: creates or upgrades every Fabric item and prints the agent install command |
-| Processing ([fabric/notebooks/](fabric/notebooks/)) | Two scheduled notebooks. `nb_gwmon_ingest` builds Bronze, Silver and Gold every 6 hours: it validates manifests and checksums, quarantines invalid input, records rejected rows, redacts secrets and captures unknown columns. `nb_gwmon_maintenance` applies retention, compacts the tables and runs validation checks once a day |
-| Semantic model and reports ([powerbi/](powerbi/)) | The *ODGO Model* semantic model, in Direct Lake on OneLake, and two reports. *ODGO - Gateway Observability* opens on a home page with the analysis paths: overview, requests, queries, logs, mashup engine, system counters and ingestion health, with a filter panel on each page. *Gateway Monitor* keeps the 13 pages of the original [pbigtwmonitor](https://github.com/RuiRomano/pbigtwmonitor) report, plus *Ingestion Health* and *Ingestion Details* pages. Both show the upload status of each server |
+| Processing ([fabric/notebooks/](fabric/notebooks/)) | `nb_gwmon_ingest` builds the Bronze, Silver and Gold tables every 6 hours: it checks every upload, quarantines invalid files, redacts secrets and captures unknown columns. `nb_gwmon_maintenance` applies the retention and compacts the tables once a day |
+| Semantic model and reports ([powerbi/](powerbi/)) | *ODGO Model*, a Direct Lake semantic model, and two reports on it: *ODGO - Gateway Observability*, which opens on a home page with the analysis paths, and *Gateway Monitor*, with the pages of the original [pbigtwmonitor](https://github.com/RuiRomano/pbigtwmonitor) report. Both have an *Ingestion Health* page with the upload status of each server |
 
 ## Getting started
 
@@ -88,7 +88,7 @@ full guide, with prerequisites and tenant settings, is [docs/setup.md](docs/setu
 
 Open the *ODGO - Gateway Observability* report: each server appears on the *Ingestion Health* page once
 `nb_gwmon_ingest` has processed its first upload. It runs every 6 hours; run it yourself in the workspace to see the
-data sooner. To upgrade, run the setup notebook again, then the new `Install-Agent.ps1` without parameters.
+data sooner. To upgrade, see [docs/setup.md](docs/setup.md#upgrade).
 
 ## Architecture
 
@@ -108,34 +108,29 @@ The agent also sends a metadata snapshot (gateway and cluster IDs and names, gat
 server name, FQDN, cores, memory, operating system, time zone) and run telemetry (counts, status, issues, agent
 version).
 
-The report covers query trends (counts, durations, failures by gateway, data source and query type), requests with
-drill-through to single queries, query concurrency, error and log volumes with full-text search, mashup engine
-activity, CPU and memory counters, the gateway inventory, and the health of the collection itself. With the default
-retention, Gold and the report keep 180 days, Silver 400 days, Bronze and the raw files 30 days; every period is
-configurable ([docs/configuration.md](docs/configuration.md)). The tables are described in
-[docs/data-model.md](docs/data-model.md).
+The reports cover query trends (counts, durations and failures by gateway, data source and query type), requests
+with drillthrough to single queries, query concurrency, logs with full-text search, mashup engine activity, CPU and
+memory counters, the gateway inventory and the health of the collection itself. By default, the reports show 180 days,
+Silver keeps 400 days, Bronze and the raw files 30 days ([docs/configuration.md](docs/configuration.md)). The tables
+are described in [docs/data-model.md](docs/data-model.md).
 
 ## Monitoring solution landscape
 
-Several approaches exist for monitoring On-premises data gateways. They answer different needs and can be used
+Several approaches exist for monitoring on-premises data gateways. They answer different needs and can be used
 together.
 
 | | [Microsoft gateway performance monitoring](https://learn.microsoft.com/data-integration/gateway/service-gateway-performance) | [pbigtwmonitor](https://github.com/RuiRomano/pbigtwmonitor) | [Fabric Platform Monitoring](https://github.com/microsoft/fabric-toolbox/tree/main/monitoring/fabric-platform-monitoring) | **ODGO** (this repository) |
 |---|---|---|---|---|
-| **Monitoring scope** | Performance log files of a gateway, visualized with a Power BI template (`.pbit`) | Logs and reports of multiple gateway clusters | Fabric platform: capacity events, activity (audit) events, tenant inventory, and an on-premises data gateway module | Logs, performance reports and metadata of on-premises data gateways, plus the health of the collection |
-| **Centralized or local** | Local: the template reads log files from a gateway (or a copy of them) | Centralized | Centralized | Centralized |
-| **Orientation** | Local troubleshooting and analysis | Centralized troubleshooting and historical analysis | Operational monitoring: real-time dashboards and reacting quickly to platform events; also keeps logs for historical purposes | Historical analysis and trends |
-| **Real-time / near-real-time** | No | No (scripts scheduled hourly or daily, per its README) | Yes: gateway heartbeat and reports streamed through Eventstreams | No: scheduled batches (agent every 15 minutes, processing every 6 hours by default) |
-| **Long-term history** | Limited to the files the gateway keeps (10 files of each kind by default) | Yes | Yes | Yes, with configurable retention per layer |
-| **Storage** | Gateway log folder | Azure Data Lake Storage Gen2 | Eventhouse (KQL databases); log files are also sent to a Lakehouse | OneLake: lakehouse files (landing) and Delta tables (Bronze, Silver, Gold) |
-| **Fabric / OneLake integration** | None | None (predates Fabric) | Fabric Real-Time Intelligence (Eventstreams, Eventhouse, Real-Time Dashboard), notebooks and pipelines | Lakehouse and scheduled notebooks |
-| **Direct Lake analytics** | No | No (import model) | Not described; its Power BI gateway report connects to the KQL database | Yes, Direct Lake on OneLake |
-| **Maintenance status** | Microsoft documentation; the feature is labelled public preview | **Archived**; its author recommends Fabric Platform Monitoring | Maintained in [microsoft/fabric-toolbox](https://github.com/microsoft/fabric-toolbox) as a solution accelerator (its README states it isn't an official Microsoft product) | New, early-stage community project |
+| **Scope** | Performance logs of one gateway, read locally by a Power BI template (`.pbit`) | Logs and reports of several gateway clusters, centralized | The whole Fabric platform (capacity, activity, inventory), with an on-premises data gateway module, centralized | Logs, performance reports and metadata of on-premises data gateways, and the health of their collection, centralized |
+| **Real time** | No | No: scripts scheduled hourly or daily | Yes: gateway heartbeat and reports streamed through Eventstreams | No: agent every 15 minutes, processing every 6 hours by default |
+| **History** | The files that the gateway keeps (10 of each kind by default) | Yes | Yes | Yes, with a retention per layer |
+| **Storage and analysis** | Gateway log folder and a Power BI template | Azure Data Lake Storage Gen2 and an import model (predates Fabric) | Eventhouse and Real-Time Dashboard; log files also kept in a lakehouse | Lakehouse (Bronze, Silver and Gold Delta tables) and a Direct Lake semantic model |
+| **Status** | Microsoft documentation; the feature is in public preview | **Archived**; its author recommends Fabric Platform Monitoring | Solution accelerator maintained in [microsoft/fabric-toolbox](https://github.com/microsoft/fabric-toolbox), not an official Microsoft product | New community project |
 
 Microsoft's template analyzes one gateway quickly. pbigtwmonitor is the historical community reference for
 centralized gateway log analysis; ODGO reuses its semantic model and report. Fabric Platform Monitoring covers
-centralized, near-real-time operational monitoring of the whole platform. ODGO focuses on long-term analysis of
-gateway logs in a lakehouse with Direct Lake, and can run side by side with Fabric Platform Monitoring.
+near-real-time monitoring of the whole platform, while ODGO focuses on the long-term analysis of gateway logs: both can
+run side by side.
 
 *Sources: the linked Microsoft Learn page and the README files of pbigtwmonitor and Fabric Platform Monitoring,
 checked in October 2026.*
@@ -167,7 +162,7 @@ checked in October 2026.*
   regex rules, and you can add rules. Nothing is sent anywhere else.
 * **Permissions.** The agent identity is a Contributor of the workspace, so it can also read the processed data: use
   a workspace dedicated to ODGO. Report readers need the Viewer role and read access to the lakehouse data, unless
-  you bind the model to a fixed identity ([docs/setup.md](docs/setup.md#share-the-report)).
+  you bind the model to a fixed identity ([docs/setup.md](docs/setup.md#share-the-reports)).
 * **Secrets.** The client secret is typed on each server, never written to a configuration file and stored
   encrypted with DPAPI in a folder that only SYSTEM and Administrators can open. Prefer a managed identity on Azure
   VMs and Azure Arc-enabled servers. The repository contains no secret, and `.gitignore` excludes secret files.
@@ -181,7 +176,7 @@ Don't report security vulnerabilities in public issues: use **Report a vulnerabi
 
 | Topic | Document |
 |---|---|
-| Installation, upgrade, sharing the report, security notes | [docs/setup.md](docs/setup.md) |
+| Installation, upgrade, sharing the reports, security notes | [docs/setup.md](docs/setup.md) |
 | Every setting: setup notebook, agent, processing | [docs/configuration.md](docs/configuration.md) |
 | Monitoring, agent tasks, backfill, retention, troubleshooting | [docs/operations.md](docs/operations.md) |
 | Lakehouse tables and semantic model (generated) | [docs/data-model.md](docs/data-model.md) |
@@ -189,8 +184,8 @@ Don't report security vulnerabilities in public issues: use **Report a vulnerabi
 
 > [!NOTE]
 > Some technical names keep the prefix of the first version of the code base: the Fabric items `nb_gwmon_*` and
-> `lh_gateway_monitor`, the OneLake folder `Files/gateway-monitor`, the `powerbi/GatewayMonitor.*` folders, and the
-> *Gateway Monitor* report (the original pbigtwmonitor name).
+> `lh_gateway_monitor`, the OneLake folder `Files/gateway-monitor` and the *Gateway Monitor* report (the original
+> pbigtwmonitor name).
 
 ## Contributing
 
@@ -204,26 +199,26 @@ gateway logs, tenant or workspace IDs, tokens or secrets.
 
 ODGO stands on the shoulders of earlier community work.
 
-* **Rui Romano — [pbigtwmonitor](https://github.com/RuiRomano/pbigtwmonitor).** The community's reference solution
+* **[Rui Romano](https://www.linkedin.com/in/ruiromano/) — [pbigtwmonitor](https://github.com/RuiRomano/pbigtwmonitor).** The community's reference solution
   for centralized gateway log analysis, now archived. ODGO directly reuses its semantic model (tables, columns,
   measures, relationships) and its report (pages, visuals, formatting, base theme), and its knowledge of the gateway
   log formats, reimplemented in Python. pbigtwmonitor is MIT-licensed; its notice is kept in [NOTICE.md](NOTICE.md).
-* **Edgar Cotte ([@ecotte](https://github.com/ecotte)) and the contributors of
+* **[Edgar Cotte](https://www.linkedin.com/in/edgarcotte/) ([@ecotte](https://github.com/ecotte)) and the contributors of
   [Fabric Platform Monitoring](https://github.com/microsoft/fabric-toolbox/tree/main/monitoring/fabric-platform-monitoring)**
   in the [Microsoft Fabric Toolbox](https://github.com/microsoft/fabric-toolbox). It brings gateway telemetry into
   Microsoft Fabric with scripts on each gateway node, including heartbeat-style monitoring, and is one of the major
   inspirations for ODGO, which applies similar ideas in a batch, lakehouse and Direct Lake form. No code from Fabric
   Platform Monitoring is included in this repository.
-* **The contributors of
-  [FUAM (Fabric Unified Admin Monitoring)](https://github.com/microsoft/fabric-toolbox/tree/main/monitoring/fabric-unified-admin-monitoring)**,
-  also in the Microsoft Fabric Toolbox. The layout of the *ODGO - Gateway Observability* report (logo and page tabs
-  in a header, a filter panel on each page, a home page with the analysis paths) is inspired by its *FUAM Gateway
-  Monitoring From Files* report. No code or asset from FUAM is included in this repository.
+* **The FUAM team, [Kevin Thomas](https://www.linkedin.com/in/kevin-thomas-021156244/) and
+  [Gellért Gintli](https://www.linkedin.com/in/ggintli/) — [Fabric Unified Admin Monitoring (FUAM)](https://github.com/microsoft/fabric-toolbox/tree/main/monitoring/fabric-unified-admin-monitoring).**
+  FUAM, also in the Microsoft Fabric Toolbox, is an inspiration for ODGO: its *FUAM Gateway Monitoring From Files*
+  report inspired the layout of the *ODGO - Gateway Observability* report (logo and page tabs in a header, a filter
+  panel on each page, a home page with the analysis paths). No code or asset from FUAM is included in this repository.
 * **Microsoft documentation:** [gateway performance monitoring](https://learn.microsoft.com/data-integration/gateway/service-gateway-performance),
   [gateway log files](https://learn.microsoft.com/data-integration/gateway/service-gateway-log-files) and the
   [Microsoft Fabric documentation](https://learn.microsoft.com/fabric/).
 * Community articles about gateway monitoring, such as the *On-premises data gateway monitoring series* linked from the
-  report's *Counters* page.
+  *Counters* page of the *Gateway Monitor* report.
 
 ## License
 

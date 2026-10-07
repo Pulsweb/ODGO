@@ -117,12 +117,12 @@ Gateway Logs* runs as SYSTEM, and its trigger repeats every 15 minutes. After it
 column shows *The operation completed successfully. (0x0)*; other values are the agent exit codes listed in
 [operations.md](operations.md#agent). To change the interval, edit the trigger (**Triggers** > **Edit** > **Repeat
 task every**) or run `pwsh -File "$env:ProgramFiles\ODGO\Install-Agent.ps1" -IntervalMinutes 30` (with your agent
-folder). Upgrades keep the interval. Keep it at 60 minutes or less: otherwise the report can show the server as
+folder). Upgrades keep the interval. Keep it at 60 minutes or less: otherwise the reports can show the server as
 *Late*.
 
 ![The Collect Gateway Logs task in Task Scheduler](images/task-scheduler.png)
 
-## Share the report
+## Share the reports
 
 The semantic model reads the lakehouse with the identity of each report reader (single sign-on), so readers need read
 access to the lakehouse data. To let readers open the reports without that access, bind the model to a fixed
@@ -138,8 +138,10 @@ Then give readers the Viewer role on the workspace, or share the reports with th
 ## Upgrade
 
 1. Run the setup notebook again. It downloads the version set in `source` and updates the items in place; data is
-   kept, and a semantic model named *Gateway Monitor* by an earlier version is renamed *ODGO Model*. If that version
-   ships a newer setup notebook, the output asks you to import it and run it instead.
+   kept, and a semantic model named *Gateway Monitor* by an earlier version is renamed *ODGO Model*. If the output
+   asks you to import a newer setup notebook, or if it stops because the download doesn't look like an ODGO
+   repository, delete the notebook, import the latest [fabric/ODGO_Setup.ipynb](../fabric/ODGO_Setup.ipynb) and run
+   it.
 2. On each gateway server, run the `Install-Agent.ps1` of the new version without parameters (the download lines
    of step 4, then `pwsh -NoProfile -File $installer`). It finds the existing installation, replaces the agent files
    in its folder and keeps the configuration, secret, state and scheduled task.

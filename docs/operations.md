@@ -66,8 +66,8 @@ historical data is kept according to the retention settings.
 | Catch up after an outage | Nothing to do: agents keep the data on the servers and upload it in budgeted runs. For an outage longer than `landing.manifestLookbackDays`, run `nb_gwmon_ingest` once with `lookback_days` covering the outage |
 
 Invalid manifests and segments (bad JSON, size or SHA-256 mismatch, unexpected path, oversized records) are copied
-to `Files/gateway-monitor/processing/quarantine/`, listed in `ops.quarantined_files` and on the *Ingestion Details*
-page. After fixing the cause, re-ingest them with `reprocess_from`.
+to `Files/gateway-monitor/processing/quarantine/`, listed in `ops.quarantined_files` and in the ingestion issues of the
+reports. After fixing the cause, re-ingest them with `reprocess_from`.
 
 ## Retention, capacity and recovery
 
@@ -90,8 +90,8 @@ Start with the tool that matches the layer:
 |---|---|
 | Agent | `Invoke-GatewayLogCollection.ps1 -Test` on the server, then the agent log |
 | Setup notebook | The error printed by the notebook: it names the step and what to check |
-| Processing | Monitoring hub (notebook runs), the *Ingestion Details* page and `ops.processing_runs` |
-| Report | The *Ingestion Health* page, the semantic model's refresh history |
+| Processing | Monitoring hub (notebook runs), the *Ingestion Health* page and `ops.processing_runs` |
+| Reports | The *Ingestion Health* page, the semantic model's refresh history |
 
 ### Agent
 
@@ -120,10 +120,11 @@ Start with the tool that matches the layer:
 | Symptom | Fix |
 |---|---|
 | `This workspace isn't assigned to a Fabric capacity` | Assign a capacity in the workspace settings (**License info**) and run the notebook again |
+| `… doesn't look like an ODGO repository or archive` | An older copy of the setup notebook (the layout of the repository changed), or `source` isn't an ODGO archive. Delete the notebook, import the latest `fabric/ODGO_Setup.ipynb` and run it |
 | Download of `source` fails | Fabric must reach GitHub. Otherwise set `source` to a `.zip` file the notebook can read |
 | HTTP 403 while creating items | You need the Admin or Member role on the workspace |
-| The report shows errors right after the setup | The first run of `nb_gwmon_ingest`, started by the setup, hasn't created the tables yet. Wait a few minutes and check the run in the Monitor hub. If it failed, or if the setup warned that it couldn't start it, run `nb_gwmon_ingest` yourself |
-| Every step succeeded but the report is empty | Normal until an agent has uploaded data and `nb_gwmon_ingest` has processed it (every 6 hours by default). To see the data sooner, run `nb_gwmon_ingest` yourself |
+| The reports show errors right after the setup | The first run of `nb_gwmon_ingest`, started by the setup, hasn't created the tables yet. Wait a few minutes and check the run in the Monitor hub. If it failed, or if the setup warned that it couldn't start it, run `nb_gwmon_ingest` yourself |
+| Every step succeeded but the reports are empty | Normal until an agent has uploaded data and `nb_gwmon_ingest` has processed it (every 6 hours by default). To see the data sooner, run `nb_gwmon_ingest` yourself |
 
 The setup can be run again safely: it updates the existing items, matched by name.
 
@@ -135,7 +136,7 @@ The setup can be run again safely: it updates the existing items, matched by nam
 | *Orphan File* issues | Raw files without a committed manifest after `landing.orphanAfterHours` | The next agent run publishes the manifest; otherwise maintenance removes orphans after retention |
 | *Quarantined File* issues | Invalid manifest or segment | See `ops.quarantined_files.reason`, fix the cause, then reprocess |
 | Many *Rejected Record* issues | A gateway update changed a log format, or implausible timestamps | Group `ops.rejected_records` by reason, check `ops.schema_drift`, and open an issue with a sanitized sample |
-| Silver has data but the report doesn't | Outside `gold.windowDays`, excluded by `gold.gatewayInclude`, or log type not in `gold.logTypes` | Adjust `processing.json` and run `nb_gwmon_ingest` (with `rebuild_gold = True` for history) |
+| Silver has data but the reports don't | Outside `gold.windowDays`, excluded by `gold.gatewayInclude`, or log type not in `gold.logTypes` | Adjust `processing.json` and run `nb_gwmon_ingest` (with `rebuild_gold = True` for history) |
 | Validation fails | A check exceeded its threshold (duplicates, orphans, freshness, too many Parquet files) | The notebook output lists the failed checks |
 | Runs take longer and longer | Too many small files, or capacity throttling | Check that the maintenance runs succeed. Schedule the ingest less often or scale the capacity |
 
@@ -145,7 +146,7 @@ The setup can be run again safely: it updates the existing items, matched by nam
 |---|---|---|
 | A server shows *Late* or *Missing* although its agent runs | Its telemetry isn't processed: `nb_gwmon_ingest` is failing, its schedule is off (Fabric turns a schedule off after about 10 consecutive failures, and a schedule expires when its owner hasn't signed in to Fabric for 90 days), or it runs less often than `gold.lateAfterMinutes` | Check the latest `nb_gwmon_ingest` runs and its schedule (run the setup notebook again to recreate it), then the agent log |
 | A decommissioned server stays *Missing* | By design | Add it to `gold.retiredServers` |
-| Visuals fail for some readers only | Single sign-on: those readers can't read the lakehouse | Bind the model to a fixed identity ([setup.md](setup.md#share-the-report)) |
+| Visuals fail for some readers only | Single sign-on: those readers can't read the lakehouse | Bind the model to a fixed identity ([setup.md](setup.md#share-the-reports)) |
 | Visuals fail for everyone after growth | Direct Lake [guardrails](https://learn.microsoft.com/fabric/fundamentals/direct-lake-overview#fabric-capacity-requirements) of the capacity SKU; Direct Lake on OneLake doesn't fall back to DirectQuery | Check the maintenance runs, lower `gold.windowDays` or use a larger SKU |
 | Times differ from the server's local time | Everything is stored in UTC | Each server's time zone and UTC offset are in the `Servers` table |
 | New data doesn't appear | The reframe at the end of `nb_gwmon_ingest` failed (the run output shows a warning), or `semanticModel.reframeAfterGold` is `false` and automatic updates are off on the model | Check the model's refresh history, then run `nb_gwmon_ingest` again |
