@@ -38,7 +38,7 @@ depends on the data volume and the capacity. No latency measurements are publish
 | Upgrade | Run the `Install-Agent.ps1` of the new version without parameters ([setup.md](setup.md#upgrade)) |
 | Remove | `Uninstall-Agent.ps1` (add `-RemoveData` to delete configuration, secret, state and logs) |
 
-**Add a gateway server:** install the agent with the same command ([setup.md](setup.md#3-install-the-agent-on-each-gateway-server)).
+**Add a gateway server:** install the agent with the same command ([setup.md](setup.md#4-install-the-agent-on-each-gateway-server)).
 With managed identities, first add the new server's identity to the workspace. The server appears on the
 *Ingestion Health* page after the next ingest run (run `nb_gwmon_ingest` yourself to see it sooner). Gateways are
 identified by their gateway ID, so clusters with members on several servers are grouped automatically.
@@ -112,9 +112,10 @@ Start with the tool that matches the layer:
 | Symptom | Fix |
 |---|---|
 | `This workspace isn't assigned to a Fabric capacity` | Assign a capacity in the workspace settings (**License info**) and run the notebook again |
-| `… isn't an Object ID` or `couldn't give the Contributor role to …` | `agent_principal_id` must be the Object ID shown under **Enterprise apps**, not the Application (client) ID nor the Object ID shown under **App registrations**. Or leave it empty and add the identity in **Manage access** ([setup.md](setup.md#give-the-agents-access-to-the-workspace)) |
+| Warning `No app registration or managed identity has access to this workspace`, and the printed command ends with `-ClientId <client-id>` | Add the app registration of the agents as Contributor in **Manage access** ([setup.md](setup.md#2-give-the-identity-access-to-the-workspace)) and run the notebook again. If you added a security group instead, replace `<client-id>` with the **Application (client) ID** shown on the app registration's **Overview** page |
+| Warning `… has the Viewer role on this workspace` | The agents can't upload with Viewer: change the role to Contributor in **Manage access** |
 | Download of `source` fails | Fabric must reach GitHub. Otherwise set `source` to a `.zip` file the notebook can read |
-| HTTP 403 while creating items or granting the role | You need the Admin or Member role on the workspace |
+| HTTP 403 while creating items | You need the Admin or Member role on the workspace |
 | Warning `Semantic model framing failed` | The model is framed again automatically when the Gold tables change; check its refresh history after the next ingest run |
 | Every step succeeded but the report is empty | Normal until an agent has uploaded data and `nb_gwmon_ingest` has processed it (every 6 hours by default). To see the data sooner, run `nb_gwmon_ingest` yourself |
 

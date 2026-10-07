@@ -12,8 +12,8 @@ First public version of ODGO (On-premises Data Gateway Observability), planned a
 ### Added
 
 * **Setup notebook** `fabric/ODGO_Setup.ipynb`: imported and run in a Fabric workspace, it creates or upgrades the
-  lakehouse, the notebooks and their schedules, the semantic model and the report, optionally grants the agent
-  identity the Contributor role, and prints the agent install command.
+  lakehouse, the notebooks and their schedules, the semantic model and the report, then prints the agent install
+  command, completed with the app registration it finds in the workspace's **Manage access**.
 * **Gateway agent** (PowerShell 7 module and scripts):
   * record-aligned incremental segments for all 12 gateway log types;
   * crash-safe commit protocol (journal, staging and rename, manifest, checkpoint) with idempotent uploads;

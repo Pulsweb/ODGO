@@ -1,12 +1,14 @@
 # Setup
 
-ODGO is installed in three steps:
+ODGO is installed in four steps:
 
 1. [Create an identity for the agents](#1-create-an-identity-for-the-agents) in Microsoft Entra ID.
-2. [Run the setup notebook](#2-run-the-setup-notebook) in a Fabric workspace.
-3. [Install the agent](#3-install-the-agent-on-each-gateway-server) on each gateway server.
+2. [Give it access to the workspace](#2-give-the-identity-access-to-the-workspace), **before** you run the setup
+   notebook.
+3. [Run the setup notebook](#3-run-the-setup-notebook) in the workspace.
+4. [Install the agent](#4-install-the-agent-on-each-gateway-server) on each gateway server.
 
-Upgrades run the same steps again: see [Upgrade](#upgrade).
+Upgrades run steps 3 and 4 again: see [Upgrade](#upgrade).
 
 ## Prerequisites
 
@@ -22,59 +24,48 @@ Upgrades run the same steps again: see [Upgrade](#upgrade).
 **App registration with a client secret** (works on any server):
 
 1. In the [Microsoft Entra admin center](https://entra.microsoft.com), open **App registrations** > **New registration**.
-   Name it, for example, `odgo-gateway-agent`, keep *Single tenant* and select **Register**.
-2. Copy the **Application (client) ID** and the **Directory (tenant) ID**.
-3. Open **Certificates & secrets** > **New client secret**, choose an expiry and copy the secret **Value** (not the
-   *Secret ID*). It's shown only once; you type it on each gateway server in step 3.
+   Name it, for example, `odgo-gateway-agent`, keep *Single tenant* and select **Register**. This also creates its
+   *Enterprise application* (service principal), which is what you add to the workspace in step 2.
+2. Open **Certificates & secrets** > **New client secret**, choose an expiry and copy the secret **Value** (not the
+   *Secret ID*). It's shown only once; you type it on each gateway server in step 4.
 
-No API permission is needed: the agent gets access through its workspace role
-([Give the agents access to the workspace](#give-the-agents-access-to-the-workspace)). One app registration can
+No API permission is needed: the agents get access through their workspace role (step 2). One app registration can
 serve every gateway server. Plan the secret rotation before it expires ([operations.md](operations.md#agent)).
 
 **Managed identity** (no secret): on an Azure VM or an [Azure Arc-enabled server](https://learn.microsoft.com/azure/azure-arc/servers/managed-identity-authentication),
-use the server's system-assigned managed identity, which has the server's name. Each server has its own identity:
-add each one to the workspace, or add a security group that contains them.
+use the server's system-assigned managed identity, which has the server's name. Each server has its own identity.
 
-## 2. Run the setup notebook
+## 2. Give the identity access to the workspace
+
+Do this **before** you run the setup notebook. The agents need the **Contributor** role on the workspace to write
+their logs to the lakehouse, and the setup notebook reads the workspace's access list to complete the install command
+that it prints.
+
+In the Fabric workspace, select **Manage access** > **Add people or groups**, type the name of the app registration
+(for example `odgo-gateway-agent`), select it, choose **Contributor** and select **Add**. With managed identities, add
+the identity of each server the same way (it has the server's name), or a security group that contains them.
+
+Contributor is enough. Don't give the agents the Admin or Member role: anyone who holds the client secret could then
+manage the access to the workspace.
+
+## 3. Run the setup notebook
 
 1. Download [fabric/ODGO_Setup.ipynb](../fabric/ODGO_Setup.ipynb).
 2. In the Fabric workspace, select **Import** > **Notebook** > **From this computer** and select the file.
-3. Open the notebook. In the parameters cell, you can optionally set:
-   * `agent_client_id`: the application (client) ID, used to complete the printed install command;
-   * `agent_principal_id`: the Object ID of the agent identity, so that the notebook gives it the Contributor role on
-     the workspace. Leave it empty to add the identity yourself after the run: see
-     [Give the agents access to the workspace](#give-the-agents-access-to-the-workspace).
-4. Select **Run all**. In a few minutes the notebook:
+3. Open the notebook and select **Run all**. You don't need to change its parameters
+   ([configuration.md](configuration.md#setup-notebook-parameters)). In a few minutes the notebook:
    * creates the lakehouse `lh_gateway_monitor` (with schemas);
    * imports the notebooks `nb_gwmon_lib`, `nb_gwmon_ingest` and `nb_gwmon_maintenance`, attached to the lakehouse;
    * runs `nb_gwmon_ingest` once, which creates the tables, the landing folder and `processing.json`;
    * creates the *Gateway Monitor* semantic model (Direct Lake) and report;
    * schedules `nb_gwmon_ingest` every 6 hours and `nb_gwmon_maintenance` once a day.
-5. The last cell prints the PowerShell lines for step 3, with the IDs of your workspace, lakehouse and tenant.
+4. The last cell prints the PowerShell lines for step 4. They contain the IDs of your workspace, lakehouse and tenant,
+   and the Application (client) ID of the app registration that the notebook found in **Manage access**. If the
+   command ends with `-ClientId <client-id>`, no app registration was found: do step 2 and run the notebook again.
 
-The notebook downloads the ODGO version set in `source` (by default the `main` branch on GitHub). The other
-parameters are described in [configuration.md](configuration.md#setup-notebook-parameters).
+The notebook downloads the ODGO version set in `source` (by default the `main` branch on GitHub).
 
-### Give the agents access to the workspace
-
-The agent identity needs the **Contributor** role on the workspace to write to the lakehouse. Give it in one of two
-ways:
-
-* **In Fabric (simplest):** in the workspace, select **Manage access** > **Add people or groups**, type the name of the
-  app registration (for example `odgo-gateway-agent`) or of the managed identity, select it, choose **Contributor**
-  and select **Add**.
-* **With the setup notebook:** before **Run all**, set `agent_principal_id` to the **Object ID** of the identity:
-  * app registration: in the [Microsoft Entra admin center](https://entra.microsoft.com), open **Enterprise apps**,
-    select the app and copy the **Object ID** of its **Overview** page, or run
-    `az ad sp show --id <application-client-id> --query id --output tsv`. Two other IDs look similar but don't work:
-    the *Application (client) ID*, and the *Object ID* shown under **App registrations**, which identifies the
-    application rather than its service principal;
-  * managed identity: in **Enterprise apps** > **All applications**, set the filter *Application type == Managed
-    Identities*, select the server and copy its **Object ID**;
-  * security group that contains the agent identities: the group's **Object ID**, with
-    `agent_principal_type = "Group"`.
-
-## 3. Install the agent on each gateway server
+## 4. Install the agent on each gateway server
 
 Open PowerShell 7 **as administrator** on the gateway server and paste the lines printed by the setup notebook:
 
@@ -86,7 +77,7 @@ $installer = (Get-ChildItem odgo -Recurse -Filter Install-Agent.ps1 | Select-Obj
 ```
 
 You're prompted for the client secret value (input hidden). With a managed identity, replace `-TenantId … -ClientId …`
-with `-ManagedIdentity`.
+with `-ManagedIdentity` (the notebook prints that line too).
 
 The installer:
 
@@ -126,7 +117,7 @@ Then give readers the Viewer role on the workspace, or share the report with the
 1. Run the setup notebook again. It downloads the version set in `source` and updates the items in place; data is
    kept. If that version ships a newer setup notebook, the output asks you to import it and run it instead.
 2. On each gateway server, run the `Install-Agent.ps1` of the new version without parameters (the download lines
-   of step 3, then `& $installer`). It replaces the agent files and keeps the configuration, secret, state and
+   of step 4, then `& $installer`). It replaces the agent files and keeps the configuration, secret, state and
    scheduled task.
 
 ## Uninstall

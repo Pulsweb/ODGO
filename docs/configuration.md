@@ -4,18 +4,17 @@ Every setting has a default, so a standard installation needs no configuration f
 
 | Settings | Where | Written by |
 |---|---|---|
-| [Setup notebook parameters](#setup-notebook-parameters) | First code cell of `ODGO_Setup` | You, before **Run all** |
+| [Setup notebook parameters](#setup-notebook-parameters) (optional) | First code cell of `ODGO_Setup` | You, before **Run all** |
 | [Agent configuration](#agent-configuration) | `%ProgramData%\ODGO\config\config.json` on each gateway server | `Install-Agent.ps1` |
 | [Processing configuration](#processing-configuration-processingjson) | `Files/gateway-monitor/config/processing.json` in `lh_gateway_monitor` | `nb_gwmon_ingest`, with the defaults, on its first run |
 | [Gateway overrides](#gateway-overrides-gateway-overridesjson) (optional) | `Files/gateway-monitor/config/gateway-overrides.json` | You |
 
 ## Setup notebook parameters
 
+The defaults suit most installations.
+
 | Parameter | Default | Description |
 |---|---|---|
-| `agent_principal_id` | empty | Object ID of the agent identity: for an app registration, the Object ID shown under **Enterprise apps**, not its Application (client) ID. It gets the Contributor role on the workspace. Empty: add the identity yourself in **Manage access** ([setup.md](setup.md#give-the-agents-access-to-the-workspace)) |
-| `agent_principal_type` | `ServicePrincipal` | `ServicePrincipal` (app registration or managed identity), or `Group` for a security group that contains the agent identities |
-| `agent_client_id` | empty | Application (client) ID, used to complete the printed install command |
 | `source` | `main` branch archive on GitHub | ODGO version to install: the URL of a repository `.zip` (branch or release), or a `.zip` file or repository folder readable by the notebook |
 | `ingest_interval_minutes` | `360` | How often `nb_gwmon_ingest` runs, in minutes (every 6 hours). Above 360, also raise `gold.lateAfterMinutes` (see [processing configuration](#processing-configuration-processingjson)) |
 | `run_first_ingestion` | `True` | Run `nb_gwmon_ingest` once during the setup (creates the tables) and frame the semantic model |
