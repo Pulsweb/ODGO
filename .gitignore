@@ -8,6 +8,7 @@ client-secret.dat
 # Power BI Desktop local files of the PBIP project
 **/.pbi/localSettings.json
 **/.pbi/cache.abf
+**/definition-liveConnect.pbir
 
 # Editors and operating systems
 .vscode/

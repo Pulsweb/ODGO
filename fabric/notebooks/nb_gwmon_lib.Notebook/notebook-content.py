@@ -212,9 +212,13 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "optimizeRecentPartitionsOnly": True,
         "recentPartitionDays": 45,
     },
-    "semanticModel": {"name": "Gateway Monitor", "reframeAfterGold": True},
+    "semanticModel": {"name": "ODGO Model", "reframeAfterGold": True},
     "validation": {"failOnError": False, "maxParquetFilesPerTable": 1000, "freshnessMinutes": 480},
 }
+
+# Name of the semantic model before it was renamed "ODGO Model". processing.json files written by those versions still
+# contain it, and the setup notebook renames that model in place.
+LEGACY_SEMANTIC_MODEL_NAMES = ("Gateway Monitor",)
 
 # Hard limit imposed by Direct Lake on string values (32,764 characters); a safety margin is kept.
 DIRECT_LAKE_MAX_STRING = 32000
@@ -273,6 +277,9 @@ def load_config(path: Optional[str] = None, overrides: Optional[Dict[str, Any]] 
         with open(file_path, "r", encoding="utf-8-sig") as handle:
             cfg = deep_merge(cfg, json.load(handle))
     cfg = deep_merge(cfg, overrides or {})
+    model = cfg.get("semanticModel")
+    if isinstance(model, dict) and model.get("name") in LEGACY_SEMANTIC_MODEL_NAMES:
+        model["name"] = DEFAULT_CONFIG["semanticModel"]["name"]
     problems = validate_config(cfg)
     if problems:
         raise ValueError("Invalid processing configuration: " + "; ".join(problems))

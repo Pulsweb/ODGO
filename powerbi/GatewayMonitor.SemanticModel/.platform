@@ -2,8 +2,8 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
   "metadata": {
     "type": "SemanticModel",
-    "displayName": "Gateway Monitor",
-    "description": "On-premises data gateway monitoring (Direct Lake on OneLake over lh_gateway_monitor gold tables)."
+    "displayName": "ODGO Model",
+    "description": "ODGO: on-premises data gateway observability (Direct Lake on OneLake over the lh_gateway_monitor gold tables)."
   },
   "config": {
     "version": "2.0",

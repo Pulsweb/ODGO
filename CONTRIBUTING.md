@@ -21,17 +21,34 @@ report a conduct problem privately, contact the repository owners through GitHub
 
 ## Testing your change
 
-The maintainers run an offline test suite (agent, processing library, setup notebook, semantic model and report)
+The maintainers run an offline test suite (agent, processing library, setup notebook, semantic model and reports)
 before merging; it isn't published in this repository. In your pull request, describe how you tested your change:
 
 * **Agent:** on a test gateway server, install your version with `Install-Agent.ps1`, then run
   `Invoke-GatewayLogCollection.ps1 -Test` and `-PlanOnly`. To test without Fabric, set `target.type` to `LocalFolder`
   (with `target.localPath`) and `authentication.mode` to `None` in the configuration: the agent then writes the
   landing layout to a local folder.
-* **Notebooks, semantic model and report:** in a test workspace, run the setup notebook with `source` set to the
+* **Notebooks, semantic model and reports:** in a test workspace, run the setup notebook with `source` set to the
   archive of your branch, for example `https://github.com/<you>/ODGO/archive/refs/heads/<branch>.zip`.
-  To edit the model and the reports, open `powerbi/GatewayObservability.pbip` or `powerbi/GatewayMonitor.pbip` in
-  Power BI Desktop.
+* **Reports in Power BI Desktop:** open a report with a live connection to the *ODGO Model* of your test workspace.
+  Next to its `definition.pbir`, create a `definition-liveConnect.pbir` file (Git ignores it) and open this file in
+  Power BI Desktop. The semantic model ID is in the address of the model in Fabric, after `datasets/`:
+
+  ```json
+  {
+    "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definitionProperties/2.0.0/schema.json",
+    "version": "4.0",
+    "datasetReference": {
+      "byConnection": {
+        "connectionString": "Data Source=\"powerbi://api.powerbi.com/v1.0/myorg/<workspace-name>\";initial catalog=\"ODGO Model\";access mode=readonly;integrated security=ClaimsToken;semanticmodelid=<semantic-model-id>"
+      }
+    }
+  }
+  ```
+
+  Don't open the `.pbip` files: the semantic model uses Direct Lake, so Power BI Desktop asks for a semantic model in
+  a workspace and offers to overwrite it with the definition of the repository, whose workspace and lakehouse IDs are
+  placeholders. That would break the model and its reports until you run the setup notebook again.
 
 ## Conventions
 
@@ -59,8 +76,9 @@ before merging; it isn't published in this repository. In your pull request, des
 ### Semantic model and reports
 
 * Keep the original object names. New measures go in the *Ingestion Health* display folder, with a description.
-* Both reports read the *Gateway Monitor* model: check a model change in both.
-* Edit the TMDL and PBIR files in Power BI Desktop (PBIP format) or as text.
+* Both reports read the *ODGO Model*: check a model change in both.
+* Edit the TMDL files as text, and the reports in Power BI Desktop with a live connection (see
+  [Testing your change](#testing-your-change)) or as text.
 
 ### Commits and pull requests
 

@@ -14,7 +14,7 @@ by the `nb_gwmon_ingest` notebook from the contracts below (additive evolution o
 
 ## Semantic model
 
-The semantic model `Gateway Monitor` (Direct Lake on OneLake) reads these Gold tables:
+The semantic model `ODGO Model` (Direct Lake on OneLake) reads these Gold tables:
 
 | Model table | Lakehouse table |
 |---|---|

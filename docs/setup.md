@@ -56,7 +56,7 @@ manage the access to the workspace.
    ([configuration.md](configuration.md#setup-notebook-parameters)). In a minute or two the notebook:
    * creates the lakehouse `lh_gateway_monitor` (with schemas);
    * imports the notebooks `nb_gwmon_lib`, `nb_gwmon_ingest` and `nb_gwmon_maintenance`, attached to the lakehouse;
-   * creates the *Gateway Monitor* semantic model (Direct Lake) and two reports on it: *ODGO - Gateway
+   * creates the *ODGO Model* semantic model (Direct Lake) and two reports on it: *ODGO - Gateway
      Observability*, which opens on a home page with the analysis paths, and *Gateway Monitor*, with the pages of the
      original pbigtwmonitor report;
    * schedules `nb_gwmon_ingest` every 6 hours and `nb_gwmon_maintenance` once a day;
@@ -128,7 +128,7 @@ The semantic model reads the lakehouse with the identity of each report reader (
 access to the lakehouse data. To let readers open the reports without that access, bind the model to a fixed
 identity:
 
-1. Open the settings of the *Gateway Monitor* semantic model > **Gateway and cloud connections**.
+1. Open the settings of the *ODGO Model* semantic model > **Gateway and cloud connections**.
 2. Create a cloud connection for the OneLake data source with an identity that can read the lakehouse (for example
    the [workspace identity](https://learn.microsoft.com/fabric/security/workspace-identity) or a service principal),
    with single sign-on turned off, and map the data source to it.
@@ -138,7 +138,8 @@ Then give readers the Viewer role on the workspace, or share the reports with th
 ## Upgrade
 
 1. Run the setup notebook again. It downloads the version set in `source` and updates the items in place; data is
-   kept. If that version ships a newer setup notebook, the output asks you to import it and run it instead.
+   kept, and a semantic model named *Gateway Monitor* by an earlier version is renamed *ODGO Model*. If that version
+   ships a newer setup notebook, the output asks you to import it and run it instead.
 2. On each gateway server, run the `Install-Agent.ps1` of the new version without parameters (the download lines
    of step 4, then `pwsh -NoProfile -File $installer`). It finds the existing installation, replaces the agent files
    in its folder and keeps the configuration, secret, state and scheduled task.

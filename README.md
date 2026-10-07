@@ -55,7 +55,7 @@ What's in the box:
 | Collection agent ([gateway-agent/](gateway-agent/)) | PowerShell 7 scheduled task, every 15 minutes. Uploads only new, complete records of 12 gateway log types (11 on by default). Crash-safe and idempotent: re-running never duplicates data |
 | Setup notebook ([fabric/ODGO_Setup.ipynb](fabric/ODGO_Setup.ipynb)) | Imported and run once in a Fabric workspace: creates or upgrades every Fabric item and prints the agent install command |
 | Processing ([fabric/notebooks/](fabric/notebooks/)) | Two scheduled notebooks. `nb_gwmon_ingest` builds Bronze, Silver and Gold every 6 hours: it validates manifests and checksums, quarantines invalid input, records rejected rows, redacts secrets and captures unknown columns. `nb_gwmon_maintenance` applies retention, compacts the tables and runs validation checks once a day |
-| Semantic model and reports ([powerbi/](powerbi/)) | Direct Lake on OneLake, with two reports. *ODGO - Gateway Observability* opens on a home page with the analysis paths: overview, requests, queries, logs, mashup engine, system counters and ingestion health, with a filter panel on each page. *Gateway Monitor* keeps the 13 pages of the original [pbigtwmonitor](https://github.com/RuiRomano/pbigtwmonitor) report, plus *Ingestion Health* and *Ingestion Details* pages. Both show the upload status of each server |
+| Semantic model and reports ([powerbi/](powerbi/)) | The *ODGO Model* semantic model, in Direct Lake on OneLake, and two reports. *ODGO - Gateway Observability* opens on a home page with the analysis paths: overview, requests, queries, logs, mashup engine, system counters and ingestion health, with a filter panel on each page. *Gateway Monitor* keeps the 13 pages of the original [pbigtwmonitor](https://github.com/RuiRomano/pbigtwmonitor) report, plus *Ingestion Health* and *Ingestion Details* pages. Both show the upload status of each server |
 
 ## Getting started
 
@@ -212,8 +212,8 @@ Don't report security vulnerabilities in public issues: use **Report a vulnerabi
 
 > [!NOTE]
 > Some technical names keep the prefix of the first version of the code base: the Fabric items `nb_gwmon_*` and
-> `lh_gateway_monitor`, the OneLake folder `Files/gateway-monitor`, and the *Gateway Monitor* semantic model and
-> report (the original pbigtwmonitor name).
+> `lh_gateway_monitor`, the OneLake folder `Files/gateway-monitor`, the `powerbi/GatewayMonitor.*` folders, and the
+> *Gateway Monitor* report (the original pbigtwmonitor name).
 
 ## Contributing
 
