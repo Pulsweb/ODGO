@@ -31,7 +31,7 @@ Upgrades run steps 3 and 4 again: see [Upgrade](#upgrade).
    *Secret ID*). It's shown only once; you type it on each gateway server in step 4.
 
 No API permission is needed: the agents get access through their workspace role (step 2). One app registration can
-serve every gateway server. Plan the secret rotation before it expires ([operations.md](operations.md#agent)).
+serve every gateway server. Plan the secret rotation before it expires (see [Security notes](#security-notes)).
 
 **Managed identity** (no secret): on an Azure VM or an [Azure Arc-enabled server](https://learn.microsoft.com/azure/azure-arc/servers/managed-identity-authentication),
 use the server's system-assigned managed identity, which has the server's name. Each server has its own identity.
@@ -114,10 +114,11 @@ same parameters. The server still needs HTTPS access to Microsoft Entra ID and O
 
 **Check the scheduled task:** open **Task Scheduler** > **Task Scheduler Library** > **ODGO**. The task *Collect
 Gateway Logs* runs as SYSTEM, and its trigger repeats every 15 minutes. After its first run, the **Last Run Result**
-column shows *The operation completed successfully. (0x0)*; other values are the agent exit codes listed in
-[operations.md](operations.md#agent). To change the interval, edit the trigger (**Triggers** > **Edit** > **Repeat
-task every**) or run `pwsh -File "$env:ProgramFiles\ODGO\Install-Agent.ps1" -IntervalMinutes 30` (with your agent
-folder). Upgrades keep the interval. Keep it at 60 minutes or less: otherwise the reports can show the server as
+column shows *The operation completed successfully. (0x0)*. Other values are agent exit codes: `1` partially
+succeeded (the next run continues), `2` failed, `3` configuration error, `4` another run is still in progress; the
+agent log in the `logs` subfolder has the details. To change the interval, edit the trigger (**Triggers** > **Edit** >
+**Repeat task every**) or run `pwsh -File "$env:ProgramFiles\ODGO\Install-Agent.ps1" -IntervalMinutes 30` (with your
+agent folder). Upgrades keep the interval. Keep it at 60 minutes or less: otherwise the reports can show the server as
 *Late*.
 
 ![The Collect Gateway Logs task in Task Scheduler](images/task-scheduler.png)

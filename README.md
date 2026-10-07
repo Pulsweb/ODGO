@@ -24,7 +24,6 @@
 [Monitoring solution landscape](#monitoring-solution-landscape) ·
 [Limitations](#limitations) ·
 [Security and privacy](#security-and-privacy) ·
-[Documentation](#documentation) ·
 [Contributing](#contributing) ·
 [Credits](#credits-and-acknowledgements) ·
 [License](#license)
@@ -216,3 +215,5 @@ kind. Test it in a non-production environment before relying on it.
 
 Microsoft, Microsoft Fabric, Power BI, OneLake, Azure and Microsoft Entra are trademarks of the Microsoft group of
 companies.
+
+<p align="center">Built with ❤️ for the Microsoft Fabric community</p>

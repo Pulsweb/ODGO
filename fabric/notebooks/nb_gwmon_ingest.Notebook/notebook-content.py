@@ -22,7 +22,7 @@
 # 4. **Gold** — rebuilds the affected months of the tables read by the Direct Lake semantic model.
 # 
 # Every stage records its run in `ops.processing_runs`. Re-running the notebook never duplicates data. The parameters
-# below are only needed for backfills and rebuilds (see docs/operations.md).
+# below are only needed for backfills and rebuilds (see docs/configuration.md).
 
 # PARAMETERS CELL ********************
 
