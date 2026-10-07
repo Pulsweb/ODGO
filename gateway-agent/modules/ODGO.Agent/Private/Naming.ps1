@@ -27,7 +27,7 @@ function Get-GwmSha256Hex {
     if ($Count -lt 0) { $Count = $Bytes.Length - $Offset }
     $algorithm = [System.Security.Cryptography.SHA256]::Create()
     try { $hash = $algorithm.ComputeHash($Bytes, $Offset, $Count) } finally { $algorithm.Dispose() }
-    return [System.Convert]::ToHexString($hash).ToLowerInvariant()
+    return ([System.BitConverter]::ToString($hash) -replace '-', '').ToLowerInvariant()
 }
 
 function Get-GwmStringSha256Hex {

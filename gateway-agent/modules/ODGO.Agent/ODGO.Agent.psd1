@@ -6,8 +6,8 @@
     CompanyName          = 'Community'
     Copyright            = '(c) ODGO contributors. MIT License.'
     Description          = 'Collects on-premises data gateway logs incrementally and uploads them to Microsoft Fabric OneLake with manifests and run telemetry.'
-    PowerShellVersion    = '7.2'
-    CompatiblePSEditions = @('Core')
+    PowerShellVersion    = '5.1'
+    CompatiblePSEditions = @('Desktop', 'Core')
     FunctionsToExport    = @('Get-GwmConfiguration', 'Invoke-GwmCollection', 'Set-GwmClientSecret', 'Test-GwmAgent')
     CmdletsToExport      = @()
     VariablesToExport    = @()

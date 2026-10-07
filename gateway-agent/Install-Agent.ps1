@@ -1,23 +1,22 @@
-#Requires -Version 7.2
+#Requires -Version 5.1
 <#
 .SYNOPSIS
     Installs, configures or upgrades the ODGO agent on an on-premises data gateway server.
 
 .DESCRIPTION
-    Run as administrator with PowerShell 7 (pwsh). One command:
+    Run as administrator, in Windows PowerShell 5.1 or PowerShell 7. One command:
       1. creates InstallPath (default %ProgramFiles%\ODGO), which only SYSTEM, Administrators and the task identity
          can access because the agent runs as SYSTEM and the folder holds the client secret;
       2. copies the agent into it, with config, state and logs subfolders;
       3. writes config\config.json with the values below (every other setting keeps its default, see docs/configuration.md);
       4. stores the client secret encrypted with DPAPI (machine scope); you are prompted for it when needed;
-      5. registers the scheduled task "\ODGO\Collect Gateway Logs";
+      5. registers the scheduled task "\ODGO\Collect Gateway Logs", which runs the agent with Windows PowerShell 5.1
+         (built into Windows);
       6. tests authentication and write access to OneLake.
     Re-run without parameters to upgrade the agent: the folder, configuration, secret, state and scheduled task of the
     existing installation are kept.
     InstallPath must be a new, empty or ODGO folder, owned by SYSTEM, Administrators, you or the task identity: a
     folder created by another user is refused, because that user could replace the agent or read the secret.
-    The scheduled task needs PowerShell 7 installed with the MSI (or ZIP) package: the MSIX package (Microsoft Store,
-    or winget since PowerShell 7.6) can't run as SYSTEM.
 
 .PARAMETER InstallPath
     Folder of the agent, its configuration, client secret, state and logs. Default: the folder of the existing
@@ -70,7 +69,7 @@
 
     First installation in D:\ODGO, with the managed identity of the server.
 .EXAMPLE
-    pwsh -File "$env:ProgramFiles\ODGO\Install-Agent.ps1" -UpdateSecret
+    powershell -ExecutionPolicy RemoteSigned -File "$env:ProgramFiles\ODGO\Install-Agent.ps1" -UpdateSecret
 
     Secret rotation, with the installed copy of the script.
 .EXAMPLE
@@ -81,26 +80,36 @@
 [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'ClientSecret')]
 param(
     # The error messages don't repeat the rejected value: a client secret typed by mistake must not be printed.
-    [ValidatePattern('^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$',
-        ErrorMessage = 'Expected the workspace ID printed by the setup notebook (a GUID).')]
+    [ValidateScript({
+            if ($_ -match '^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$') { return $true }
+            throw 'Expected the workspace ID printed by the setup notebook (a GUID).'
+        })]
     [string] $WorkspaceId,
-    [ValidatePattern('^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$',
-        ErrorMessage = 'Expected the lakehouse ID printed by the setup notebook (a GUID).')]
+    [ValidateScript({
+            if ($_ -match '^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$') { return $true }
+            throw 'Expected the lakehouse ID printed by the setup notebook (a GUID).'
+        })]
     [string] $LakehouseId,
     [Parameter(ParameterSetName = 'ClientSecret')]
-    [ValidatePattern('^([0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}|[A-Za-z0-9.-]+\.[A-Za-z]{2,})$',
-        ErrorMessage = 'Expected the Directory (tenant) ID (a GUID) or a domain such as contoso.onmicrosoft.com.')]
+    [ValidateScript({
+            if ($_ -match '^([0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}|[A-Za-z0-9.-]+\.[A-Za-z]{2,})$') { return $true }
+            throw 'Expected the Directory (tenant) ID (a GUID) or a domain such as contoso.onmicrosoft.com.'
+        })]
     [string] $TenantId,
     [Parameter(ParameterSetName = 'ClientSecret')]
-    [ValidatePattern('^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$',
-        ErrorMessage = 'Expected the Application (client) ID of the app registration, a GUID shown on its Overview page, not the client secret value: the installer asks for the secret, with the input hidden.')]
+    [ValidateScript({
+            if ($_ -match '^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$') { return $true }
+            throw 'Expected the Application (client) ID of the app registration, a GUID shown on its Overview page, not the client secret value: the installer asks for the secret, with the input hidden.'
+        })]
     [string] $ClientId,
     [Parameter(ParameterSetName = 'ClientSecret')][securestring] $ClientSecret,
     [Parameter(ParameterSetName = 'ClientSecret')][switch] $UpdateSecret,
     [Parameter(Mandatory, ParameterSetName = 'ManagedIdentity')][switch] $ManagedIdentity,
     [Parameter(ParameterSetName = 'ManagedIdentity')]
-    [ValidatePattern('^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$',
-        ErrorMessage = 'Expected the client ID of the user-assigned managed identity (a GUID).')]
+    [ValidateScript({
+            if ($_ -match '^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$') { return $true }
+            throw 'Expected the client ID of the user-assigned managed identity (a GUID).'
+        })]
     [string] $ManagedIdentityClientId,
     [AllowEmptyString()][string] $ProxyUrl,
     [ValidateRange(5, 1440)][int] $IntervalMinutes = 15,
@@ -111,7 +120,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-if (-not $IsWindows) { throw 'The agent runs on Windows gateway servers.' }
+if ($env:OS -ne 'Windows_NT') { throw 'The agent runs on Windows gateway servers.' }
 $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
 $isElevated = ([Security.Principal.WindowsPrincipal]$currentUser).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isElevated -and -not $SkipElevationCheck -and -not $WhatIfPreference) {
@@ -120,7 +129,7 @@ if (-not $isElevated -and -not $SkipElevationCheck -and -not $WhatIfPreference) 
 $modulePath = Join-Path $PSScriptRoot 'modules\ODGO.Agent\ODGO.Agent.psd1'
 if (-not (Test-Path -LiteralPath $modulePath)) { throw "Agent module not found next to Install-Agent.ps1 ('$modulePath')." }
 Get-Module ODGO.Agent | Remove-Module -Force -WhatIf:$false
-Import-Module $modulePath -Force
+$agentModule = Import-Module $modulePath -Force -PassThru
 
 function Set-ConfigValue {
     param([System.Collections.IDictionary] $Settings, [string] $Path, $Value)
@@ -179,6 +188,7 @@ function Set-FolderAccess {
     <# Replaces the explicit access rules of a folder; its content inherits them. Without -Inherit, the folder doesn't
        inherit the rules of its parent. Writes the DACL only: Set-Acl would also try to write the SACL, which requires
        SeSecurityPrivilege. #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseCompatibleTypes', '', Justification = 'FileSystemAclExtensions is used only in PowerShell 7.')]
     param([string] $Path, [hashtable[]] $Rules, [switch] $Inherit)
     $acl = [System.Security.AccessControl.DirectorySecurity]::new()
     $acl.SetAccessRuleProtection(-not $Inherit, $false)
@@ -186,29 +196,14 @@ function Set-FolderAccess {
     foreach ($rule in $Rules) {
         $acl.AddAccessRule([System.Security.AccessControl.FileSystemAccessRule]::new($rule.Sid, $rule.Rights, $inheritance, 'None', 'Allow'))
     }
-    [System.IO.FileSystemAclExtensions]::SetAccessControl([System.IO.DirectoryInfo]::new($Path), $acl)
+    $directory = [System.IO.DirectoryInfo]::new($Path)
+    if ($PSVersionTable.PSEdition -eq 'Desktop') { $directory.SetAccessControl($acl) }
+    else { [System.IO.FileSystemAclExtensions]::SetAccessControl($directory, $acl) }
 }
 
-function Resolve-TaskPowerShell {
-    <# pwsh.exe for the scheduled task. The MSIX package (Microsoft Store, or winget since PowerShell 7.6) can't run as
-       SYSTEM and its folder changes with each update, so the MSI (or ZIP) package is needed. PowerShell 7.6 is the last
-       version with an MSI package. msiexec installs it next to the MSIX package; winget doesn't, because it sees
-       PowerShell as already installed. #>
-    param([string] $PowerShellHome, [string] $ProgramFiles,
-        [version] $Version = [version]::new($PSVersionTable.PSVersion.Major, $PSVersionTable.PSVersion.Minor, $PSVersionTable.PSVersion.Patch))
-    if ($PowerShellHome -notmatch '\\WindowsApps\\') { return Join-Path $PowerShellHome 'pwsh.exe' }
-    $msi = Join-Path $ProgramFiles 'PowerShell\7\pwsh.exe'
-    if ([System.IO.File]::Exists($msi)) { return $msi }
-    $msiVersion = if ($Version.Major -eq 7 -and $Version.Minor -le 6) { "$Version" } else { '7.6.6' }
-    $file = "PowerShell-$msiVersion-win-x64.msi"
-    throw ("This PowerShell 7 is the MSIX package (Microsoft Store, or winget since PowerShell 7.6), which the scheduled task can't " +
-        "run as SYSTEM. Nothing was changed. Install the MSI package of PowerShell $msiVersion next to it (Microsoft Update keeps it " +
-        "up to date), then run this command again:`n" +
-        "  Invoke-WebRequest https://github.com/PowerShell/PowerShell/releases/download/v$msiVersion/$file -OutFile $file -UseBasicParsing`n" +
-        "  Start-Process msiexec.exe -Wait -ArgumentList '/package $file /quiet ADD_PATH=1 USE_MU=1 ENABLE_MU=1'")
-}
-
-$taskPowerShell = Resolve-TaskPowerShell -PowerShellHome $PSHOME -ProgramFiles $env:ProgramFiles
+# The scheduled task always runs the agent with Windows PowerShell 5.1: built into Windows, updated with it, and at
+# the same path on every server, whichever PowerShell runs this installer.
+$taskPowerShell = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
 
 # The scheduled task keeps its identity and interval unless -TaskUser or -IntervalMinutes is passed.
 $taskPath = '\ODGO\'
@@ -259,9 +254,8 @@ Assert-TrustedFolder -Path $InstallPath -TrustedSids $trustedOwners
 $configFile = Join-Path $InstallPath 'config\config.json'
 $settings = [ordered]@{}
 if (Test-Path -LiteralPath $configFile) {
-    try { $settings = Get-Content -LiteralPath $configFile -Raw | ConvertFrom-Json -AsHashtable }
-    catch { throw "The existing configuration '$configFile' is not valid JSON: $($_.Exception.Message)" }
-    if ($settings -isnot [System.Collections.IDictionary]) { throw "The existing configuration '$configFile' must contain a JSON object. Fix or delete it, then run the installer again." }
+    try { $settings = & $agentModule { param($Path) Read-GwmConfigurationFile -Path $Path } $configFile }
+    catch { throw "$($_.Exception.Message.TrimEnd('.')). Fix or delete it, then run the installer again." }
 }
 elseif (-not $WorkspaceId -or -not $LakehouseId -or (-not $ManagedIdentity -and (-not $TenantId -or -not $ClientId))) {
     throw 'First installation: pass -WorkspaceId, -LakehouseId and either -TenantId and -ClientId or -ManagedIdentity. The ODGO_Setup notebook prints the complete command.'
@@ -336,7 +330,8 @@ foreach ($name in @('config', 'state', 'logs')) {
 
 # 5. Configuration file and secret.
 if ($configChanged -and $PSCmdlet.ShouldProcess($configFile, 'Write configuration')) {
-    [System.IO.File]::WriteAllText($configFile, ($settings | ConvertTo-Json -Depth 16) + "`n", [System.Text.UTF8Encoding]::new($false))
+    $json = & $agentModule { param($Value) ConvertTo-GwmJson -InputObject $Value } $settings
+    [System.IO.File]::WriteAllText($configFile, $json + "`n", [System.Text.UTF8Encoding]::new($false))
 }
 if ($secret -and $PSCmdlet.ShouldProcess($authentication.clientSecretPath, 'Store the client secret (DPAPI, machine scope)')) {
     Set-GwmClientSecret -Secret $secret -Path $authentication.clientSecretPath
@@ -383,7 +378,7 @@ if (-not $SkipTest) {
     Write-Host 'Testing the configuration, authentication and OneLake write access...'
     & (Join-Path $InstallPath 'Invoke-GatewayLogCollection.ps1') -Test -ConfigPath $configFile
     if ($LASTEXITCODE -ne 0) {
-        Write-Warning "The test failed: fix the issues above, then run: pwsh -File '$(Join-Path $InstallPath 'Invoke-GatewayLogCollection.ps1')' -Test"
+        Write-Warning "The test failed: fix the issues above, then run: powershell -ExecutionPolicy RemoteSigned -File '$(Join-Path $InstallPath 'Invoke-GatewayLogCollection.ps1')' -Test"
         exit 1
     }
 }

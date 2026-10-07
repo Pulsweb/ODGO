@@ -1,10 +1,10 @@
-#Requires -Version 7.2
+#Requires -Version 5.1
 <#
 .SYNOPSIS
     Collects on-premises data gateway logs and uploads new data to Microsoft Fabric OneLake (one run).
 
 .DESCRIPTION
-    Entry point used by the scheduled task "\ODGO\Collect Gateway Logs".
+    Entry point used by the scheduled task "\ODGO\Collect Gateway Logs", which runs it with Windows PowerShell 5.1.
     Exit codes: 0 succeeded, 1 partially succeeded, 2 failed, 3 configuration error, 4 another run is in progress.
     With -Test: 0 when every check passed (warnings allowed), 1 otherwise.
 
@@ -28,9 +28,9 @@
     No console output (the JSONL log in agent.logDirectory is always written).
 
 .EXAMPLE
-    pwsh -File "C:\Program Files\ODGO\Invoke-GatewayLogCollection.ps1" -Test
+    powershell -ExecutionPolicy RemoteSigned -File "$env:ProgramFiles\ODGO\Invoke-GatewayLogCollection.ps1" -Test
 .EXAMPLE
-    pwsh -File "C:\Program Files\ODGO\Invoke-GatewayLogCollection.ps1"
+    powershell -ExecutionPolicy RemoteSigned -File "$env:ProgramFiles\ODGO\Invoke-GatewayLogCollection.ps1"
 #>
 [CmdletBinding()]
 param(

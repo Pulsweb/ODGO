@@ -27,7 +27,8 @@ function Set-GwmClientSecret {
         $temporary = Join-Path $folder ('.client-secret-{0}.tmp' -f [guid]::NewGuid().ToString('n'))
         try {
             [System.IO.File]::WriteAllBytes($temporary, $protected)
-            [System.IO.File]::Move($temporary, $fullPath, $true)
+            if ([System.IO.File]::Exists($fullPath)) { [System.IO.File]::Delete($fullPath) }
+            [System.IO.File]::Move($temporary, $fullPath)
         }
         finally {
             if ([System.IO.File]::Exists($temporary)) { [System.IO.File]::Delete($temporary) }

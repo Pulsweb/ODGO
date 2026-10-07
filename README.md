@@ -51,15 +51,16 @@ What's in the box:
 
 | Component | What it does |
 |---|---|
-| Collection agent ([gateway-agent/](gateway-agent/)) | PowerShell 7 scheduled task, every 15 minutes. Uploads only new, complete records of 12 gateway log types (11 on by default). Crash-safe and idempotent: re-running never duplicates data |
+| Collection agent ([gateway-agent/](gateway-agent/)) | Scheduled task, every 15 minutes, that runs with the Windows PowerShell built into Windows. Uploads only new, complete records of 12 gateway log types (11 on by default). Crash-safe and idempotent: re-running never duplicates data |
 | Setup notebook ([fabric/ODGO_Setup.ipynb](fabric/ODGO_Setup.ipynb)) | Imported and run once in a Fabric workspace: creates or upgrades every Fabric item and prints the agent install command |
 | Processing ([fabric/notebooks/](fabric/notebooks/)) | `nb_gwmon_ingest` builds the Bronze, Silver and Gold tables every 2 hours: it checks every upload, quarantines invalid files, redacts secrets and captures unknown columns. `nb_gwmon_maintenance` applies the retention and compacts the tables once a day |
 | Semantic model and reports ([powerbi/](powerbi/)) | *ODGO Model*, a Direct Lake semantic model, and two reports on it: *ODGO - Gateway Observability*, which opens on a home page with the analysis paths, and *Gateway Monitor*, with the pages of the original [pbigtwmonitor](https://github.com/RuiRomano/pbigtwmonitor) report. Both have an *Ingestion Health* page with the upload status of each server |
 
 ## Getting started
 
-You need a Fabric workspace on a capacity (F SKU or trial) and PowerShell 7 (MSI package) on the gateway servers. The
-full guide, with prerequisites and tenant settings, is [docs/setup.md](docs/setup.md).
+You need a Fabric workspace on a capacity (F SKU or trial). Nothing has to be installed on the gateway servers first:
+the agent runs with Windows PowerShell, built into Windows. The full guide, with prerequisites and tenant settings, is
+[docs/setup.md](docs/setup.md).
 
 1. **Create an identity for the agents:** a Microsoft Entra app registration with a client secret; copy its
    Application (client) ID. On Azure VMs and Azure Arc-enabled servers you can use the server's managed identity
@@ -76,10 +77,11 @@ full guide, with prerequisites and tenant settings, is [docs/setup.md](docs/setu
 
    ```powershell
    Set-Location $env:TEMP
+   [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor 'Tls12'
    Invoke-WebRequest 'https://github.com/Pulsweb/ODGO/archive/refs/heads/main.zip' -OutFile odgo.zip -UseBasicParsing
    Remove-Item odgo -Recurse -Force -ErrorAction Ignore; Expand-Archive odgo.zip odgo
    $installer = (Get-ChildItem odgo -Recurse -Filter Install-Agent.ps1 | Select-Object -First 1).FullName
-   pwsh -NoProfile -File $installer -InstallPath "$env:ProgramFiles\ODGO" -WorkspaceId <workspace-id> -LakehouseId <lakehouse-id> -TenantId <tenant-id> -ClientId <client-id>
+   powershell -NoProfile -ExecutionPolicy RemoteSigned -File $installer -InstallPath "$env:ProgramFiles\ODGO" -WorkspaceId <workspace-id> -LakehouseId <lakehouse-id> -TenantId <tenant-id> -ClientId <client-id>
    ```
 
    The installer creates the `-InstallPath` folder (change it to install elsewhere, for example `D:\ODGO`), which
@@ -213,5 +215,7 @@ kind. Test it in a non-production environment before relying on it.
 
 Microsoft, Microsoft Fabric, Power BI, OneLake, Azure and Microsoft Entra are trademarks of the Microsoft group of
 companies.
+
+---
 
 <p align="center">Built with ❤️ for the Microsoft Fabric community</p>

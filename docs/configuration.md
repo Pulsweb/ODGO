@@ -38,7 +38,7 @@ Every other key takes the default listed below. To change a setting, edit the fi
 it with (use your agent folder):
 
 ```powershell
-pwsh -File "$env:ProgramFiles\ODGO\Invoke-GatewayLogCollection.ps1" -Test
+powershell -ExecutionPolicy RemoteSigned -File "$env:ProgramFiles\ODGO\Invoke-GatewayLogCollection.ps1" -Test
 ```
 
 * Keys are camelCase. Unknown keys are rejected, so typos fail fast.

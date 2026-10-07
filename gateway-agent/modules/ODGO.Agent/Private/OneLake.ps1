@@ -160,10 +160,10 @@ function Publish-GwmLocalObject {
             [System.IO.File]::Delete($staging)
             return 'AlreadyExists'
         }
-        [System.IO.File]::Move($staging, $destination, $true)
+        [System.IO.File]::Replace($staging, $destination, [NullString]::Value)
         return 'Replaced'
     }
-    [System.IO.File]::Move($staging, $destination, $false)
+    [System.IO.File]::Move($staging, $destination)
     return 'Uploaded'
 }
 

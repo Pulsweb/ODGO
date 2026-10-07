@@ -14,7 +14,8 @@ First public version of ODGO (On-premises Data Gateway Observability), planned a
 * **Setup notebook** `fabric/ODGO_Setup.ipynb`: imported and run in a Fabric workspace, it creates or upgrades the
   lakehouse, the notebooks and their schedules, the semantic model and the reports in a minute or two, starts the
   first ingestion in the background, then prints the agent install command.
-* **Gateway agent** (PowerShell 7 module and scripts):
+* **Gateway agent** (PowerShell module and scripts for Windows PowerShell 5.1 and PowerShell 7; the scheduled task
+  uses the Windows PowerShell built into Windows, so the servers need nothing else):
   * record-aligned incremental segments for all 12 gateway log types;
   * crash-safe commit protocol (journal, staging and rename, manifest, checkpoint) with idempotent uploads;
   * app registration client secret stored encrypted with DPAPI, or managed identity (Azure VM, Azure Arc-enabled

@@ -62,7 +62,7 @@ body:
       description: Gateway version and mode, Windows version, PowerShell version, Fabric capacity SKU, authentication mode.
       placeholder: |
         Gateway: 3000.xxx (standard mode)
-        Windows Server 2022, PowerShell 7.4
+        Windows Server 2022, Windows PowerShell 5.1
         Fabric capacity F<size>, authentication ClientSecret
   - type: checkboxes
     id: checks

@@ -16,7 +16,7 @@ Upgrades run steps 3 and 4 again: see [Upgrade](#upgrade).
 |---|---|
 | Fabric workspace | A workspace assigned to a Fabric capacity (F SKU or trial), preferably used only for ODGO, and the Admin or Member role on it |
 | Fabric tenant settings | *Users can access data stored in OneLake with apps external to Fabric* (OneLake settings) and *Service principals can call Fabric public APIs* (Developer settings, on by default). Both can be limited to a security group that contains the agent identity. See [tenant settings](https://learn.microsoft.com/fabric/admin/about-tenant-settings) |
-| Gateway servers | Windows, On-premises data gateway in standard mode, PowerShell 7 installed with the [MSI package](https://learn.microsoft.com/powershell/scripting/install/install-powershell-on-windows#install-the-msi-package), which exists up to version 7.6 (the MSIX package, which the Microsoft Store and winget install by default, can't run as SYSTEM: see [step 4](#4-install-the-agent-on-each-gateway-server)), outbound HTTPS (443) to `login.microsoftonline.com` and `onelake.dfs.fabric.microsoft.com` |
+| Gateway servers | Windows with the On-premises data gateway in standard mode, and outbound HTTPS (443) to `login.microsoftonline.com` and `onelake.dfs.fabric.microsoft.com`. Nothing else to install: the agent runs with Windows PowerShell 5.1, built into Windows |
 | Reports | The *Logs* page of each report uses the AppSource *Text Filter* visual, which your tenant must allow |
 
 ## 1. Create an identity for the agents
@@ -68,20 +68,23 @@ The notebook downloads the ODGO version set in `source` (by default the `main` b
 
 ## 4. Install the agent on each gateway server
 
-Open PowerShell **as administrator** on the gateway server (Windows PowerShell or PowerShell 7: the last line starts
-the installer with PowerShell 7) and paste the lines printed by the setup notebook, after replacing `<client-id>` with
-the Application (client) ID of your app registration (a GUID, not the secret value):
+Open PowerShell **as administrator** on the gateway server (Windows PowerShell or PowerShell 7) and paste the lines
+printed by the setup notebook, after replacing `<client-id>` with the Application (client) ID of your app registration
+(a GUID, not the secret value):
 
 ```powershell
 Set-Location $env:TEMP
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor 'Tls12'
 Invoke-WebRequest 'https://github.com/Pulsweb/ODGO/archive/refs/heads/main.zip' -OutFile odgo.zip -UseBasicParsing
 Remove-Item odgo -Recurse -Force -ErrorAction Ignore; Expand-Archive odgo.zip odgo
 $installer = (Get-ChildItem odgo -Recurse -Filter Install-Agent.ps1 | Select-Object -First 1).FullName
-pwsh -NoProfile -File $installer -InstallPath "$env:ProgramFiles\ODGO" -WorkspaceId <workspace-id> -LakehouseId <lakehouse-id> -TenantId <tenant-id> -ClientId <client-id>
+powershell -NoProfile -ExecutionPolicy RemoteSigned -File $installer -InstallPath "$env:ProgramFiles\ODGO" -WorkspaceId <workspace-id> -LakehouseId <lakehouse-id> -TenantId <tenant-id> -ClientId <client-id>
 ```
 
-`-InstallPath` is the folder of the agent, its configuration, client secret, state and logs: change it to install the
-agent elsewhere, for example `D:\ODGO`. Use a new or empty local folder, not the root of a drive or a network path.
+The second line turns on TLS 1.2 for the download, which GitHub requires and older Windows versions don't offer by
+default. `-InstallPath` is the folder of the agent, its configuration, client secret, state and logs: change it to
+install the agent elsewhere, for example `D:\ODGO`. Use a new or empty local folder, not the root of a drive or a
+network path.
 
 You're prompted for the client secret value (input hidden). With a managed identity, replace `-TenantId … -ClientId …`
 with `-ManagedIdentity` (the notebook prints that line too).
@@ -91,7 +94,8 @@ The installer:
 * creates the `-InstallPath` folder, which only SYSTEM and Administrators can open because the agent runs as SYSTEM
   and the folder holds the client secret, and copies the agent into it;
 * writes `config\config.json` in this folder and stores the client secret encrypted with DPAPI next to it;
-* registers the scheduled task `\ODGO\Collect Gateway Logs`, which runs every 15 minutes as SYSTEM;
+* registers the scheduled task `\ODGO\Collect Gateway Logs`, which runs the agent with Windows PowerShell every 15
+  minutes as SYSTEM;
 * tests the configuration, gateway discovery, authentication and write access to OneLake. Each check prints *PASS*,
   *WARNING* or *FAIL*, with a fix for each warning or failure.
 
@@ -102,19 +106,8 @@ starts about 2 minutes later. The server appears on the *Ingestion Health* page 
 Optional parameters: `-ProxyUrl` (outbound proxy), `-IntervalMinutes`, `-TaskUser` (a group managed service account
 instead of SYSTEM) and `-SkipTest`. Run `Get-Help $installer -Detailed` for details.
 
-**`pwsh` isn't recognized, or the installer says that PowerShell 7 is the MSIX package:** install PowerShell 7.6 with
-its MSI package, the last version that has one. It installs next to the MSIX package (winget can't: it sees PowerShell
-as already installed), and Microsoft Update keeps it up to date:
-
-```powershell
-Invoke-WebRequest https://github.com/PowerShell/PowerShell/releases/download/v7.6.6/PowerShell-7.6.6-win-x64.msi -OutFile PowerShell-7.6.6-win-x64.msi -UseBasicParsing
-Start-Process msiexec.exe -Wait -ArgumentList '/package PowerShell-7.6.6-win-x64.msi /quiet ADD_PATH=1 USE_MU=1 ENABLE_MU=1'
-```
-
-Then paste the install lines again, in a new PowerShell window if `pwsh` wasn't recognized.
-
 **Server without internet access:** download the zip on another computer, copy it to the server, extract it, unblock
-the files (`Get-ChildItem -Recurse | Unblock-File`) and run `gateway-agent\Install-Agent.ps1` with PowerShell 7 and the
+the files (`Get-ChildItem -Recurse | Unblock-File`) and run `gateway-agent\Install-Agent.ps1` as administrator with the
 same parameters. The server still needs HTTPS access to Microsoft Entra ID and OneLake, directly or through
 `-ProxyUrl`.
 
@@ -123,9 +116,9 @@ Gateway Logs* runs as SYSTEM, and its trigger repeats every 15 minutes. After it
 column shows *The operation completed successfully. (0x0)*. Other values are agent exit codes: `1` partially
 succeeded (the next run continues), `2` failed, `3` configuration error, `4` another run is still in progress; the
 agent log in the `logs` subfolder has the details. To change the interval, edit the trigger (**Triggers** > **Edit** >
-**Repeat task every**) or run `pwsh -File "$env:ProgramFiles\ODGO\Install-Agent.ps1" -IntervalMinutes 30` (with your
-agent folder). Upgrades keep the interval. Keep it at 60 minutes or less: otherwise the reports can show the server as
-*Late*.
+**Repeat task every**) or run `powershell -ExecutionPolicy RemoteSigned -File "$env:ProgramFiles\ODGO\Install-Agent.ps1" -IntervalMinutes 30`
+(with your agent folder). Upgrades keep the interval. Keep it at 60 minutes or less: otherwise the reports can show
+the server as *Late*.
 
 ![The Collect Gateway Logs task in Task Scheduler](images/task-scheduler.png)
 
@@ -150,14 +143,17 @@ Then give readers the Viewer role on the workspace, or share the reports with th
    repository, delete the notebook, import the latest [fabric/ODGO_Setup.ipynb](../fabric/ODGO_Setup.ipynb) and run
    it.
 2. On each gateway server, run the `Install-Agent.ps1` of the new version without parameters (the download lines
-   of step 4, then `pwsh -NoProfile -File $installer`). It finds the existing installation, replaces the agent files
-   in its folder and keeps the configuration, secret, state and scheduled task.
+   of step 4, then `powershell -NoProfile -ExecutionPolicy RemoteSigned -File $installer`). It finds the existing
+   installation, replaces the agent files in its folder and keeps the configuration, secret, state and scheduled task.
+   A scheduled task that an earlier version set up with PowerShell 7 switches to Windows PowerShell: PowerShell 7 isn't
+   needed anymore.
 
 ## Uninstall
 
 * Agent: run `Uninstall-Agent.ps1` from the agent folder, for example
-  `pwsh -File "$env:ProgramFiles\ODGO\Uninstall-Agent.ps1"`. It removes the scheduled task and the agent files, and
-  keeps the configuration, secret, state and logs. Add `-RemoveData` to delete the whole folder.
+  `powershell -ExecutionPolicy RemoteSigned -File "$env:ProgramFiles\ODGO\Uninstall-Agent.ps1"`. It removes the
+  scheduled task and the agent files, and keeps the configuration, secret, state and logs. Add `-RemoveData` to delete
+  the whole folder.
 * Fabric: delete the ODGO items, or the workspace.
 
 ## Security notes

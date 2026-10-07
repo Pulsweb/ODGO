@@ -7,7 +7,8 @@ function Save-GwmJsonFile {
     param([Parameter(Mandatory)][string] $Path, [Parameter(Mandatory)] $InputObject, [switch] $NoBackup)
     $directory = Split-Path -Parent $Path
     if ($directory) { [void][System.IO.Directory]::CreateDirectory($directory) }
-    $json = $InputObject | ConvertTo-Json -Depth 32 -WarningAction SilentlyContinue
+    # Compact: Windows PowerShell 5.1 indents nested objects by the length of their keys, which multiplies the size of the checkpoint.
+    $json = $InputObject | ConvertTo-Json -Depth 32 -Compress -WarningAction SilentlyContinue
     $bytes = [System.Text.UTF8Encoding]::new($false).GetBytes($json)
     $temp = "$Path.tmp"
     $stream = [System.IO.FileStream]::new($temp, [System.IO.FileMode]::Create, [System.IO.FileAccess]::Write, [System.IO.FileShare]::None, 4096, [System.IO.FileOptions]::WriteThrough)
@@ -35,7 +36,7 @@ function Read-GwmJsonFile {
         try {
             $text = [System.IO.File]::ReadAllText($candidate)
             if ([string]::IsNullOrWhiteSpace($text)) { throw 'file is empty' }
-            $parsed = $text | ConvertFrom-Json -Depth 64
+            $parsed = $text | ConvertFrom-Json
             if ($parsed -isnot [System.Management.Automation.PSCustomObject]) { throw 'root is not a JSON object' }
             return [pscustomobject]@{ Value = (ConvertTo-GwmDictionary $parsed); Path = $candidate; Restored = ($candidate -ne $Path) }
         }

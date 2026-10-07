@@ -23,7 +23,7 @@ function Test-GwmAgent {
         return , $results.ToArray()
     }
     & $add 'Configuration' 'Pass' "Environment '$($Configuration.environment)', target $($Configuration.target.type), authentication $($Configuration.authentication.mode)."
-    & $add 'PowerShell' 'Pass' "PowerShell $($PSVersionTable.PSVersion) running as $([Environment]::UserDomainName)\$([Environment]::UserName)."
+    & $add 'PowerShell' 'Pass' "PowerShell $($PSVersionTable.PSVersion) ($($PSVersionTable.PSEdition)) running as $([Environment]::UserDomainName)\$([Environment]::UserName)."
 
     foreach ($folder in @(@{ Name = 'State directory'; Path = $Configuration.agent.stateDirectory }, @{ Name = 'Log directory'; Path = $Configuration.agent.logDirectory })) {
         try {
@@ -81,7 +81,7 @@ function Test-GwmAgent {
             $null = Read-GwmClientSecret -Path $authentication.clientSecretPath
             & $add 'Client secret' 'Pass' "Stored encrypted in '$($authentication.clientSecretPath)'."
         }
-        catch { & $add 'Client secret' 'Fail' $_.Exception.Message 'Run Install-Agent.ps1 -UpdateSecret from an elevated PowerShell 7 session.' }
+        catch { & $add 'Client secret' 'Fail' $_.Exception.Message 'Run Install-Agent.ps1 -UpdateSecret as administrator.' }
     }
     $tokenOk = $true
     if ($authentication.mode -ne 'None') {

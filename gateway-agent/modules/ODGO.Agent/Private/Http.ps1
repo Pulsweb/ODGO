@@ -1,4 +1,7 @@
-# Thin HTTP wrapper around Invoke-WebRequest: no exceptions for HTTP status codes, proxy support, safe URIs in messages.
+# HTTP requests through System.Net.Http.HttpClient, the same in Windows PowerShell 5.1 and PowerShell 7: no exceptions
+# for HTTP status codes, proxy support, connection reuse within a run, safe URIs in messages.
+
+$script:GwmHttpClients = @{}
 
 function Get-GwmSafeUri {
     <# Strips query strings (which may carry SAS-like secrets) from a URI before it is logged. #>
@@ -33,6 +36,50 @@ function ConvertTo-GwmRetryAfterSeconds {
     return $null
 }
 
+function New-GwmHttpHandler {
+    <# Proxy settings: none (-NoProxy), network.proxyUrl, or the proxy of the system. No cookies: every request stands alone. #>
+    param([AllowNull()][System.Collections.IDictionary] $Network, [switch] $NoProxy)
+    $handler = [System.Net.Http.HttpClientHandler]::new()
+    $handler.UseCookies = $false
+    if ($NoProxy) { $handler.UseProxy = $false }
+    elseif ($Network -and $Network.proxyUrl) {
+        $proxy = [System.Net.WebProxy]::new([string]$Network.proxyUrl)
+        $proxy.UseDefaultCredentials = [bool]$Network.proxyUseDefaultCredentials
+        $handler.Proxy = $proxy
+    }
+    return $handler
+}
+
+function Get-GwmHttpClient {
+    <# One client per proxy setting, kept for the lifetime of the module so that connections are reused. #>
+    param([AllowNull()][System.Collections.IDictionary] $Network, [switch] $NoProxy)
+    $key = if ($NoProxy) { 'none' }
+    elseif ($Network -and $Network.proxyUrl) { 'proxy|{0}|{1}' -f $Network.proxyUrl, [bool]$Network.proxyUseDefaultCredentials }
+    else { 'system' }
+    if (-not $script:GwmHttpClients.ContainsKey($key)) {
+        $client = [System.Net.Http.HttpClient]::new((New-GwmHttpHandler -Network $Network -NoProxy:$NoProxy))
+        # Each request has its own timeout.
+        $client.Timeout = [System.Threading.Timeout]::InfiniteTimeSpan
+        [void]$client.DefaultRequestHeaders.TryAddWithoutValidation('User-Agent', "ODGO-Agent/$script:GwmAgentVersion")
+        $script:GwmHttpClients[$key] = $client
+    }
+    return $script:GwmHttpClients[$key]
+}
+
+function Get-GwmExceptionText {
+    <# Messages of an exception and of its inner exceptions, without the wrapper that PowerShell adds to .NET method calls. #>
+    [OutputType([string])]
+    param([System.Exception] $Exception)
+    $messages = [System.Collections.Generic.List[string]]::new()
+    for ($current = $Exception; $null -ne $current; $current = $current.InnerException) {
+        if ($current -is [System.Management.Automation.MethodInvocationException]) { continue }
+        $message = $current.Message.Trim()
+        if (-not $message.EndsWith('.') -and -not $message.EndsWith(')')) { $message += '.' }
+        if (-not @($messages | Where-Object { $_.Contains($message.TrimEnd('.')) })) { $messages.Add($message) }
+    }
+    return ($messages -join ' ')
+}
+
 function Invoke-GwmHttpRequest {
     <# Sends one HTTP request. Returns StatusCode/Headers/Content; throws only for network-level failures (transient). #>
     param(
@@ -45,31 +92,47 @@ function Invoke-GwmHttpRequest {
         [AllowNull()][System.Collections.IDictionary] $Network = $null,
         [switch] $NoProxy
     )
-    $parameters = @{
-        Method             = $Method
-        Uri                = $Uri
-        Headers            = $Headers
-        TimeoutSec         = $TimeoutSeconds
-        SkipHttpErrorCheck = $true
-        ErrorAction        = 'Stop'
-    }
-    if ($null -ne $Body) { $parameters.Body = $Body }
-    if ($ContentType) { $parameters.ContentType = $ContentType }
-    if ($NoProxy) { $parameters.NoProxy = $true }
-    elseif ($Network -and $Network.proxyUrl) {
-        $parameters.Proxy = $Network.proxyUrl
-        if ($Network.proxyUseDefaultCredentials) { $parameters.ProxyUseDefaultCredentials = $true }
-    }
+    $request = [System.Net.Http.HttpRequestMessage]::new([System.Net.Http.HttpMethod]::new($Method.ToUpperInvariant()), $Uri)
+    $timeout = [System.Threading.CancellationTokenSource]::new([TimeSpan]::FromSeconds($TimeoutSeconds))
     try {
-        $response = Invoke-WebRequest @parameters -Verbose:$false -Debug:$false
+        if ($null -ne $Body) {
+            $request.Content = if ($Body -is [byte[]]) { [System.Net.Http.ByteArrayContent]::new($Body) }
+            elseif ($Body -is [System.IO.Stream]) { [System.Net.Http.StreamContent]::new($Body) }
+            else { [System.Net.Http.StringContent]::new([string]$Body, [System.Text.UTF8Encoding]::new($false)) }
+            if ($ContentType) { $request.Content.Headers.ContentType = [System.Net.Http.Headers.MediaTypeHeaderValue]::Parse($ContentType) }
+        }
+        # Otherwise .NET Framework waits for a "100 Continue" answer before it sends each body.
+        $request.Headers.ExpectContinue = $false
+        foreach ($key in $Headers.Keys) {
+            if (-not $request.Headers.TryAddWithoutValidation([string]$key, [string]$Headers[$key]) -and $request.Content) {
+                [void]$request.Content.Headers.TryAddWithoutValidation([string]$key, [string]$Headers[$key])
+            }
+        }
+        $client = Get-GwmHttpClient -Network $Network -NoProxy:$NoProxy
+        try {
+            $response = $client.SendAsync($request, $timeout.Token).GetAwaiter().GetResult()
+        }
+        catch {
+            $reason = if ($timeout.IsCancellationRequested) { "no response within $TimeoutSeconds seconds." } else { Get-GwmExceptionText $_.Exception }
+            throw (New-GwmException -Message "$Method $(Get-GwmSafeUri $Uri) failed: $reason" -Transient $true -InnerException $_.Exception)
+        }
+        try {
+            $responseHeaders = [System.Collections.Generic.Dictionary[string, string]]::new([StringComparer]::OrdinalIgnoreCase)
+            $headerGroups = @($response.Headers)
+            if ($response.Content) { $headerGroups += @($response.Content.Headers) }
+            foreach ($header in $headerGroups) { $responseHeaders[$header.Key] = @($header.Value) -join ',' }
+            $content = if ($response.Content) { $response.Content.ReadAsStringAsync().GetAwaiter().GetResult() } else { '' }
+            $result = [pscustomobject]@{
+                StatusCode = [int]$response.StatusCode
+                Headers    = $responseHeaders
+                Content    = $content
+            }
+        }
+        finally { $response.Dispose() }
     }
-    catch {
-        throw (New-GwmException -Message "$Method $(Get-GwmSafeUri $Uri) failed: $($_.Exception.Message)" -Transient $true -InnerException $_.Exception)
-    }
-    $result = [pscustomobject]@{
-        StatusCode = [int]$response.StatusCode
-        Headers    = $response.Headers
-        Content    = $response.Content
+    finally {
+        $request.Dispose()
+        $timeout.Dispose()
     }
     # Rendered as "HTTP <status>" when passed to a command: module logging would otherwise record the content (tokens).
     $result.PSObject.Methods.Add([System.Management.Automation.PSScriptMethod]::new('ToString', { 'HTTP {0}' -f $this.StatusCode }))
@@ -84,7 +147,7 @@ function Get-GwmResponseErrorCode {
     if ($content -is [byte[]]) { $content = [System.Text.Encoding]::UTF8.GetString($content) }
     if ($content -is [string] -and $content.TrimStart().StartsWith('{')) {
         try {
-            $json = $content | ConvertFrom-Json -Depth 8
+            $json = $content | ConvertFrom-Json
             if ($json.PSObject.Properties['error']) {
                 $errorValue = $json.error
                 if ($errorValue -is [string]) { return $errorValue }
@@ -103,7 +166,7 @@ function Get-GwmResponseErrorMessage {
     if ($content -isnot [string] -or [string]::IsNullOrWhiteSpace($content)) { return '' }
     $text = $content
     try {
-        $json = $content | ConvertFrom-Json -Depth 8
+        $json = $content | ConvertFrom-Json
         if ($json.PSObject.Properties['error_description']) { $text = [string]$json.error_description }
         elseif ($json.PSObject.Properties['error'] -and $json.error -isnot [string] -and $json.error.PSObject.Properties['message']) { $text = [string]$json.error.message }
     }

@@ -1,4 +1,4 @@
-#Requires -Version 7.2
+#Requires -Version 5.1
 <#
 .SYNOPSIS
     Removes the ODGO agent: scheduled task and agent files. The configuration, client secret, state and logs are
@@ -11,9 +11,9 @@
     Also removes the configuration, client secret, state and logs, then the folder itself.
 
 .EXAMPLE
-    pwsh -File "$env:ProgramFiles\ODGO\Uninstall-Agent.ps1"
+    powershell -ExecutionPolicy RemoteSigned -File "$env:ProgramFiles\ODGO\Uninstall-Agent.ps1"
 .EXAMPLE
-    pwsh -File "$env:ProgramFiles\ODGO\Uninstall-Agent.ps1" -RemoveData
+    powershell -ExecutionPolicy RemoteSigned -File "$env:ProgramFiles\ODGO\Uninstall-Agent.ps1" -RemoveData
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param(

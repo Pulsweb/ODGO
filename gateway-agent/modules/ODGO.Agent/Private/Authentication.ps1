@@ -19,6 +19,7 @@ $script:GwmBroadReaders = @{
 
 function Protect-GwmSecret {
     <# DPAPI machine scope: any process of this server can decrypt the result, so the file ACL is what protects it. #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseCompatibleTypes', '', Justification = 'ODGO.Agent.psm1 loads System.Security in Windows PowerShell 5.1.')]
     [OutputType([byte[]])]
     param([Parameter(Mandatory)][securestring] $Secret)
     $bytes = [System.Text.Encoding]::UTF8.GetBytes([System.Net.NetworkCredential]::new('', $Secret).Password.Trim())
@@ -32,7 +33,7 @@ function Protect-GwmSecret {
 function Assert-GwmPrivateFolder {
     <# Throws when files created in the folder would be readable by broad groups such as Users or Everyone. #>
     param([Parameter(Mandatory)][string] $Path)
-    $acl = [System.IO.FileSystemAclExtensions]::GetAccessControl([System.IO.DirectoryInfo]::new($Path))
+    $acl = Get-Acl -LiteralPath $Path
     foreach ($rule in $acl.GetAccessRules($true, $true, [System.Security.Principal.SecurityIdentifier])) {
         $sid = $rule.IdentityReference.Value
         if ($rule.AccessControlType -ne 'Allow' -or -not $script:GwmBroadReaders.ContainsKey($sid)) { continue }
@@ -46,6 +47,7 @@ function Assert-GwmPrivateFolder {
 }
 
 function Read-GwmClientSecret {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseCompatibleTypes', '', Justification = 'ODGO.Agent.psm1 loads System.Security in Windows PowerShell 5.1.')]
     [OutputType([string])]
     param([Parameter(Mandatory)][AllowEmptyString()][string] $Path)
     if ([string]::IsNullOrWhiteSpace($Path) -or -not [System.IO.File]::Exists($Path)) {
@@ -62,22 +64,33 @@ function Read-GwmClientSecret {
 }
 
 function Get-GwmTokenFromResponse {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseCompatibleTypes', '', Justification = 'Each type is used only in the PowerShell edition that has it.')]
     param($Response, [string] $Source)
     $content = $Response.Content
     if ($content -is [byte[]]) { $content = [System.Text.Encoding]::UTF8.GetString($content) }
-    # System.Text.Json rather than ConvertFrom-Json, whose input (the token) module logging would record.
+    # .NET parsers rather than ConvertFrom-Json, whose input (the token) module logging would record.
     $values = @{}
-    try { $document = [System.Text.Json.JsonDocument]::Parse([string]$content) }
-    catch { throw "$Source returned a response that isn't JSON." }
     try {
-        if ($document.RootElement.ValueKind -eq [System.Text.Json.JsonValueKind]::Object) {
-            foreach ($property in $document.RootElement.EnumerateObject()) {
-                $isString = $property.Value.ValueKind -eq [System.Text.Json.JsonValueKind]::String
-                $values[$property.Name] = if ($isString) { $property.Value.GetString() } else { $property.Value.GetRawText() }
+        if ($PSVersionTable.PSEdition -eq 'Desktop') {
+            $parsed = [System.Web.Script.Serialization.JavaScriptSerializer]::new().DeserializeObject([string]$content)
+            if ($parsed -is [System.Collections.IDictionary]) {
+                foreach ($key in $parsed.Keys) { $values[$key] = [string]$parsed[$key] }
             }
         }
+        else {
+            $document = [System.Text.Json.JsonDocument]::Parse([string]$content)
+            try {
+                if ($document.RootElement.ValueKind -eq [System.Text.Json.JsonValueKind]::Object) {
+                    foreach ($property in $document.RootElement.EnumerateObject()) {
+                        $isString = $property.Value.ValueKind -eq [System.Text.Json.JsonValueKind]::String
+                        $values[$property.Name] = if ($isString) { $property.Value.GetString() } else { $property.Value.GetRawText() }
+                    }
+                }
+            }
+            finally { $document.Dispose() }
+        }
     }
-    finally { $document.Dispose() }
+    catch { throw "$Source returned a response that isn't JSON." }
     if ([string]::IsNullOrEmpty($values['access_token'])) { throw "$Source returned no access token." }
     $expires = [DateTime]::UtcNow.AddMinutes(30)
     if ("$($values['expires_on'])" -match '^[0-9]+$') {

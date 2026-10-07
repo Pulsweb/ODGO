@@ -122,6 +122,7 @@ function New-GwmAgentMetadataDocument {
 }
 
 function New-GwmTelemetryDocument {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseCompatibleTypes', '', Justification = 'RuntimeInformation exists in .NET Framework 4.7.1 and later; the gateway requires 4.8.')]
     param(
         [Parameter(Mandatory)][string] $RunId,
         [Parameter(Mandatory)][string] $Environment,
@@ -160,7 +161,7 @@ function New-GwmTelemetryDocument {
         targetType        = $TargetType
         configHash        = $ConfigHash
         powershellVersion = $PSVersionTable.PSVersion.ToString()
-        osVersion         = [System.Runtime.InteropServices.RuntimeInformation]::OSDescription
+        osVersion         = [System.Runtime.InteropServices.RuntimeInformation]::OSDescription.Trim()
         manifestPath      = $ManifestPath
         counts            = $Counts
         gateways          = @($Gateways | Select-Object -First 64)

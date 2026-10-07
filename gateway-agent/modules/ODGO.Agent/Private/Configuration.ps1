@@ -107,6 +107,36 @@ function ConvertTo-GwmDictionary {
     return $InputObject
 }
 
+function ConvertFrom-GwmJson {
+    <# ConvertFrom-Json that returns a JSON array as one array, in Windows PowerShell 5.1 and PowerShell 7 (which would
+       enumerate it): a nested array is never enumerated. #>
+    param([Parameter(Mandatory)][AllowEmptyString()][string] $Json)
+    if ([string]::IsNullOrWhiteSpace($Json)) { return $null }
+    return , ('{"value":' + $Json + '}' | ConvertFrom-Json).value
+}
+
+function ConvertTo-GwmJson {
+    <# ConvertTo-Json indented with two spaces in Windows PowerShell 5.1 too, whose own layout aligns nested values far to
+       the right. For small documents that people read, such as config.json. #>
+    [OutputType([string])]
+    param([AllowNull()] $InputObject, [int] $Depth = 16)
+    $compact = ConvertTo-Json -InputObject $InputObject -Depth $Depth -Compress -WarningAction SilentlyContinue
+    $tokens = [regex]::Matches($compact, '"(?:[^"\\]|\\.)*"|[{}\[\],:]|[^{}\[\],:"\s]+')
+    $builder = [System.Text.StringBuilder]::new()
+    $level = 0
+    for ($index = 0; $index -lt $tokens.Count; $index++) {
+        $token = $tokens[$index].Value
+        $next = if ($index + 1 -lt $tokens.Count) { $tokens[$index + 1].Value } else { '' }
+        if (($token -eq '{' -and $next -eq '}') -or ($token -eq '[' -and $next -eq ']')) { [void]$builder.Append($token + $next); $index++ }
+        elseif ($token -eq '{' -or $token -eq '[') { $level++; [void]$builder.Append($token).Append("`n").Append('  ' * $level) }
+        elseif ($token -eq '}' -or $token -eq ']') { $level--; [void]$builder.Append("`n").Append('  ' * $level).Append($token) }
+        elseif ($token -eq ',') { [void]$builder.Append(",`n").Append('  ' * $level) }
+        elseif ($token -eq ':') { [void]$builder.Append(': ') }
+        else { [void]$builder.Append($token) }
+    }
+    return $builder.ToString()
+}
+
 function Merge-GwmDictionary {
     <# Deep merge: dictionaries merge recursively, every other value (arrays included) replaces. Unknown keys are kept so validation can report them. #>
     param([System.Collections.IDictionary] $Base, [System.Collections.IDictionary] $Override)
@@ -333,7 +363,7 @@ function Read-GwmConfigurationFile {
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { throw [System.IO.FileNotFoundException]::new("Configuration file not found: $Path", $Path) }
     $text = [System.IO.File]::ReadAllText((Resolve-Path -LiteralPath $Path).ProviderPath)
     try {
-        $parsed = $text | ConvertFrom-Json -Depth 64
+        $parsed = $text | ConvertFrom-Json
     }
     catch {
         throw "Configuration file '$Path' is not valid JSON: $($_.Exception.Message)"
@@ -345,7 +375,5 @@ function Read-GwmConfigurationFile {
 function Get-GwmConfigurationHash {
     <# First 16 hex characters of the SHA-256 of the effective configuration (reported in run telemetry). #>
     param([System.Collections.IDictionary] $Configuration)
-    $json = $Configuration | ConvertTo-Json -Depth 32 -Compress
-    $hash = [System.Security.Cryptography.SHA256]::HashData([System.Text.Encoding]::UTF8.GetBytes($json))
-    return ([System.Convert]::ToHexString($hash).ToLowerInvariant()).Substring(0, 16)
+    return (Get-GwmStringSha256Hex ($Configuration | ConvertTo-Json -Depth 32 -Compress)).Substring(0, 16)
 }

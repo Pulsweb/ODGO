@@ -3,6 +3,7 @@
 
 $script:GwmNewLine = [byte]10
 $script:GwmQuote = [byte]34
+$script:GwmLatin1 = [System.Text.Encoding]::GetEncoding(28591)
 
 function Find-GwmLineCut {
     <# Index just after the last LF in Buffer[0..Length), or -1. #>
@@ -44,7 +45,7 @@ function Get-GwmQuoteCount {
     $end = $Offset + $Count
     for ($position = $Offset; $position -lt $end; $position += $chunk) {
         $length = [Math]::Min($chunk, $end - $position)
-        $text = [System.Text.Encoding]::Latin1.GetString($Buffer, $position, $length)
+        $text = $script:GwmLatin1.GetString($Buffer, $position, $length)
         $total += $text.Length - $text.Replace('"', '').Length
     }
     return $total

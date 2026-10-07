@@ -5,15 +5,17 @@ $script:GwmHardwareInventory = $null
 
 function Get-GwmHardwareInventory {
     <# Processor, memory and OS facts (CIM). Cached for the lifetime of the process; CIM failures are tolerated. #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseCompatibleTypes', '', Justification = 'RuntimeInformation exists in .NET Framework 4.7.1 and later; the gateway requires 4.8.')]
+    param()
     if ($script:GwmHardwareInventory) { return $script:GwmHardwareInventory }
     $inventory = [pscustomobject]@{
         NumberOfCores     = $null
         LogicalProcessors = [Environment]::ProcessorCount
         TotalMemoryMB     = $null
-        OsVersion         = [System.Runtime.InteropServices.RuntimeInformation]::OSDescription
+        OsVersion         = [System.Runtime.InteropServices.RuntimeInformation]::OSDescription.Trim()
         OsArchitecture    = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
     }
-    if ($IsWindows) {
+    if ($script:GwmIsWindows) {
         try {
             $processors = @(Get-CimInstance -ClassName Win32_Processor -ErrorAction Stop -Verbose:$false)
             $inventory.NumberOfCores = [int](($processors | Measure-Object -Property NumberOfCores -Sum).Sum)
@@ -34,7 +36,7 @@ function Get-GwmHardwareInventory {
 }
 
 function Get-GwmMachineGuid {
-    if ($IsWindows) {
+    if ($script:GwmIsWindows) {
         try {
             $value = Get-ItemPropertyValue -LiteralPath 'HKLM:\SOFTWARE\Microsoft\Cryptography' -Name 'MachineGuid' -ErrorAction Stop
             if ($value) { return [pscustomobject]@{ Value = [string]$value; Source = 'MachineGuid' } }
@@ -88,7 +90,7 @@ function Find-GwmGatewayLogRoot {
     <# Default service profile first, then any service/user profile that contains gateway logs (most recently written wins). #>
     [OutputType([string])]
     param()
-    if (-not $IsWindows) { return $null }
+    if (-not $script:GwmIsWindows) { return $null }
     $windows = if ($env:windir) { $env:windir } else { 'C:\Windows' }
     $default = Join-Path $windows "ServiceProfiles\PBIEgwService\$script:GwmDefaultLogRootSuffix"
     if (Test-Path -LiteralPath $default) { return $default }
@@ -111,7 +113,7 @@ function Find-GwmGatewayLogRoot {
 function Get-GwmGatewayService {
     <# Gateway Windows service state, executable path and product version. #>
     param([string] $ServiceName = 'PBIEgwService')
-    if (-not $IsWindows -or [string]::IsNullOrWhiteSpace($ServiceName)) { return $null }
+    if (-not $script:GwmIsWindows -or [string]::IsNullOrWhiteSpace($ServiceName)) { return $null }
     try {
         $escaped = $ServiceName.Replace("'", "\'")
         $service = Get-CimInstance -ClassName Win32_Service -Filter "Name='$escaped'" -ErrorAction Stop -Verbose:$false
@@ -143,7 +145,7 @@ function Read-GwmJsonDocument {
         $stream = Open-GwmSharedFile -Path $Path -RetryCount 1
         try { $bytes = Read-GwmFileRange -Stream $stream -Offset 0 -Count ([Math]::Min($stream.Length, 16MB)) } finally { $stream.Dispose() }
         $text = [System.Text.Encoding]::UTF8.GetString($bytes).TrimStart([char]0xFEFF)
-        return , ($text | ConvertFrom-Json -Depth 32 -NoEnumerate)
+        return , (ConvertFrom-GwmJson $text)
     }
     catch {
         Write-GwmLog -Level Warning -EventName 'MetadataFileInvalid' -Message "Cannot read '$Path': $($_.Exception.Message)"
