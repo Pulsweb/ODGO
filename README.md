@@ -76,11 +76,12 @@ with prerequisites and tenant settings, is [docs/setup.md](docs/setup.md).
    Invoke-WebRequest 'https://github.com/Pulsweb/ODGO/archive/refs/heads/main.zip' -OutFile odgo.zip
    Remove-Item odgo -Recurse -Force -ErrorAction Ignore; Expand-Archive odgo.zip odgo
    $installer = (Get-ChildItem odgo -Recurse -Filter Install-Agent.ps1 | Select-Object -First 1).FullName
-   & $installer -WorkspaceId <workspace-id> -LakehouseId <lakehouse-id> -TenantId <tenant-id> -ClientId <client-id>
+   & $installer -InstallPath "$env:ProgramFiles\ODGO" -WorkspaceId <workspace-id> -LakehouseId <lakehouse-id> -TenantId <tenant-id> -ClientId <client-id>
    ```
 
-   The installer asks for the client secret, stores it encrypted, registers the scheduled task and tests the
-   connection to OneLake.
+   The installer copies the agent to the `-InstallPath` folder (change it to install elsewhere, for example
+   `D:\ODGO`), asks for the client secret, stores it encrypted, registers the scheduled task and tests the connection
+   to OneLake.
 
 Open the *Gateway Monitor* report: each server appears on the *Ingestion Health* page once `nb_gwmon_ingest` has
 processed its first upload. It runs every 6 hours; run it yourself in the workspace to see the data sooner. To

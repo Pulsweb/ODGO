@@ -73,15 +73,19 @@ Open PowerShell 7 **as administrator** on the gateway server and paste the lines
 Invoke-WebRequest 'https://github.com/Pulsweb/ODGO/archive/refs/heads/main.zip' -OutFile odgo.zip
 Remove-Item odgo -Recurse -Force -ErrorAction Ignore; Expand-Archive odgo.zip odgo
 $installer = (Get-ChildItem odgo -Recurse -Filter Install-Agent.ps1 | Select-Object -First 1).FullName
-& $installer -WorkspaceId <workspace-id> -LakehouseId <lakehouse-id> -TenantId <tenant-id> -ClientId <client-id>
+& $installer -InstallPath "$env:ProgramFiles\ODGO" -WorkspaceId <workspace-id> -LakehouseId <lakehouse-id> -TenantId <tenant-id> -ClientId <client-id>
 ```
+
+`-InstallPath` is the folder of the agent: change it to install the agent elsewhere, for example `D:\ODGO`. Use a new
+or empty local folder, not the root of a drive or a network path.
 
 You're prompted for the client secret value (input hidden). With a managed identity, replace `-TenantId … -ClientId …`
 with `-ManagedIdentity` (the notebook prints that line too).
 
 The installer:
 
-* copies the agent to `%ProgramFiles%\ODGO`;
+* copies the agent to the `-InstallPath` folder, which only SYSTEM and Administrators can change because the agent
+  runs as SYSTEM;
 * writes `%ProgramData%\ODGO\config\config.json` and stores the client secret encrypted with DPAPI;
   only SYSTEM and Administrators can open this folder;
 * registers the scheduled task `\ODGO\Collect Gateway Logs`, which runs every 15 minutes as SYSTEM;
@@ -117,19 +121,23 @@ Then give readers the Viewer role on the workspace, or share the report with the
 1. Run the setup notebook again. It downloads the version set in `source` and updates the items in place; data is
    kept. If that version ships a newer setup notebook, the output asks you to import it and run it instead.
 2. On each gateway server, run the `Install-Agent.ps1` of the new version without parameters (the download lines
-   of step 4, then `& $installer`). It replaces the agent files and keeps the configuration, secret, state and
-   scheduled task.
+   of step 4, then `& $installer`). It finds the existing installation, replaces the agent files in its folder and
+   keeps the configuration, secret, state and scheduled task.
 
 ## Uninstall
 
-* Agent: `& "$env:ProgramFiles\ODGO\Uninstall-Agent.ps1"`. Add `-RemoveData` to also delete the
-  configuration, secret, state and logs.
+* Agent: run `Uninstall-Agent.ps1` from the agent folder, for example `& "$env:ProgramFiles\ODGO\Uninstall-Agent.ps1"`.
+  It removes the scheduled task and the agent folder. Add `-RemoveData` to also delete the configuration, secret,
+  state and logs.
 * Fabric: delete the ODGO items, or the workspace.
 
 ## Security notes
 
 * **Workspace role.** The agent identity is a Contributor of the workspace: it can write the landing folder, and it
   can also read the processed data and change the items of this workspace. Use a workspace dedicated to ODGO.
+* **Agent folder.** The scheduled task runs the agent as SYSTEM, so only SYSTEM and Administrators can change the
+  files of the `-InstallPath` folder. The installer refuses a folder created by another account or containing other
+  files, so that nobody else can place code that would run as SYSTEM.
 * **Client secret.** The secret is encrypted with DPAPI (machine scope) in a file that only SYSTEM, Administrators and
   the task identity can read, so any administrator of the server can decrypt it. The installer refuses a data folder
   created by another account, and the agent never passes the secret or a token to a command as text, so PowerShell

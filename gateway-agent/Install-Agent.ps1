@@ -5,16 +5,28 @@
 
 .DESCRIPTION
     Run from an elevated PowerShell 7 session. One command:
-      1. copies the agent to InstallPath (default %ProgramFiles%\ODGO);
+      1. copies the agent to InstallPath (default %ProgramFiles%\ODGO), which only SYSTEM and Administrators can
+         change because the scheduled task runs the agent as SYSTEM;
       2. creates DataPath (default %ProgramData%\ODGO) with config, state and logs folders that only
          SYSTEM, Administrators and the task identity can access;
       3. writes config\config.json with the values below (every other setting keeps its default, see docs/configuration.md);
       4. stores the client secret encrypted with DPAPI (machine scope); you are prompted for it when needed;
       5. registers the scheduled task "\ODGO\Collect Gateway Logs";
       6. tests authentication and write access to OneLake.
-    Re-run without parameters to upgrade the agent files: configuration, secret, state and scheduled task are kept.
-    An existing data folder must belong to SYSTEM, Administrators, you or the task identity: a folder created by
-    another user is refused, because that user could read the secret.
+    Re-run without parameters to upgrade the agent: the folders, configuration, secret, state and scheduled task of the
+    existing installation are kept.
+    InstallPath and DataPath must be new, empty or ODGO folders, owned by SYSTEM, Administrators, you or the task
+    identity: a folder created by another user is refused, because that user could replace the agent or read the
+    secret.
+
+.PARAMETER InstallPath
+    Folder of the agent files. Default: the folder of the existing installation, or %ProgramFiles%\ODGO. Use a local
+    folder such as D:\ODGO: drive roots and network paths are refused.
+
+.PARAMETER DataPath
+    Folder of the configuration, client secret, state and logs. Default: the folder of the existing installation, or
+    %ProgramData%\ODGO. If you change it, pass -ConfigPath <DataPath>\config\config.json to
+    Invoke-GatewayLogCollection.ps1 when you run it yourself.
 
 .PARAMETER WorkspaceId
     Fabric workspace id (printed by the ODGO_Setup notebook).
@@ -58,9 +70,13 @@
 
     First installation with an app registration; prompts for the client secret.
 .EXAMPLE
-    .\Install-Agent.ps1 -WorkspaceId <workspace id> -LakehouseId <lakehouse id> -ManagedIdentity
+    .\Install-Agent.ps1 -InstallPath D:\ODGO -WorkspaceId <workspace id> -LakehouseId <lakehouse id> -ManagedIdentity
+
+    First installation in D:\ODGO, with the managed identity of the server.
 .EXAMPLE
     & "$env:ProgramFiles\ODGO\Install-Agent.ps1" -UpdateSecret
+
+    Secret rotation, from the agent folder.
 .EXAMPLE
     .\Install-Agent.ps1
 
@@ -117,8 +133,8 @@ function Resolve-AccountSid {
     return [System.Security.Principal.NTAccount]::new($Name).Translate([System.Security.Principal.SecurityIdentifier])
 }
 
-function Assert-TrustedDataFolder {
-    <# Refuses a data folder that another user created or changed: that user could read the client secret or plant a configuration. #>
+function Assert-TrustedFolder {
+    <# Refuses a folder that another user created or changed: that user could replace the agent, plant a configuration or read the client secret. #>
     param([string] $Path, [string[]] $TrustedSids)
     if (-not (Test-Path -LiteralPath $Path)) { return }
     $advice = "Check the folder, then delete it or make Administrators its owner (takeown /F `"$Path`" /A /R /D Y) and run the installer again."
@@ -130,14 +146,46 @@ function Assert-TrustedDataFolder {
         catch { $null = $_ }
         if ($owner -and $owner -in $TrustedSids) { continue }
         $name = if ($owner) { try { [System.Security.Principal.SecurityIdentifier]::new($owner).Translate([System.Security.Principal.NTAccount]).Value } catch { $owner } } else { 'an owner that can''t be read' }
-        throw "'$($item.FullName)' is owned by $name, not by SYSTEM, Administrators, you or the task identity: another user may have created it to read the client secret. $advice"
+        throw "'$($item.FullName)' is owned by $name, not by SYSTEM, Administrators, you or the task identity: another user may have created it to replace the agent or read the client secret. $advice"
     }
+}
+
+function Resolve-AgentFolder {
+    <# Full path of an agent folder. Network paths and drive roots are refused. #>
+    param([string] $Path, [string] $Name)
+    if ([string]::IsNullOrWhiteSpace($Path)) { throw "$Name is empty." }
+    if ($Path.Trim().StartsWith('\\')) { throw "$Name must be a local folder, not a network path ('$Path')." }
+    $full = [System.IO.Path]::GetFullPath($Path.Trim()).TrimEnd('\')
+    if ([System.IO.Path]::GetPathRoot($full).TrimEnd('\') -ieq $full) { throw "$Name can't be the root of a drive ('$Path'): use a folder such as D:\ODGO." }
+    return $full
+}
+
+function Assert-AgentFolderContent {
+    <# An existing folder must be empty or already belong to ODGO, because its access rules are replaced. #>
+    param([string] $Path, [string] $Name, [string[]] $Markers)
+    if (-not (Test-Path -LiteralPath $Path)) { return }
+    if (@(Get-ChildItem -LiteralPath $Path -Force).Count -eq 0) { return }
+    foreach ($marker in $Markers) { if (Test-Path -LiteralPath (Join-Path $Path $marker)) { return } }
+    throw "$Name '$Path' already contains other files: choose a new or empty folder, for example '$(Join-Path $Path 'ODGO')'."
+}
+
+function Set-FolderAccess {
+    <# Replaces the access rules of a folder (inherited by its content). Writes the DACL only: Set-Acl would also try to write the SACL, which requires SeSecurityPrivilege. #>
+    param([string] $Path, [hashtable[]] $Rules)
+    $acl = [System.Security.AccessControl.DirectorySecurity]::new()
+    $acl.SetAccessRuleProtection($true, $false)
+    $inherit = [System.Security.AccessControl.InheritanceFlags]'ContainerInherit, ObjectInherit'
+    foreach ($rule in $Rules) {
+        $acl.AddAccessRule([System.Security.AccessControl.FileSystemAccessRule]::new($rule.Sid, $rule.Rights, $inherit, 'None', 'Allow'))
+    }
+    [System.IO.FileSystemAclExtensions]::SetAccessControl([System.IO.DirectoryInfo]::new($Path), $acl)
 }
 
 # The scheduled task keeps its identity and interval unless -TaskUser or -IntervalMinutes is passed.
 $taskPath = '\ODGO\'
 $taskName = 'Collect Gateway Logs'
 $existingTask = Get-ScheduledTask -TaskPath $taskPath -TaskName $taskName -ErrorAction SilentlyContinue
+$existingAction = if ($existingTask) { @($existingTask.Actions)[0] } else { $null }
 $existingTaskUser = if ($existingTask) { "$($existingTask.Principal.UserId)" } else { '' }
 if ($existingTaskUser -and -not $PSBoundParameters.ContainsKey('TaskUser')) {
     $TaskUser = $existingTaskUser
@@ -164,13 +212,28 @@ if (-not $runAsSystem) {
     catch { throw "The task identity '$TaskUser' can't be resolved ($($_.Exception.Message)). Pass -TaskUser SYSTEM, or the DOMAIN\name$ of a group managed service account that this server can use (Test-ADServiceAccount)." }
 }
 
+# The folders of an existing installation are kept unless -InstallPath or -DataPath is passed.
+$previousInstallPath = if ($existingAction) { "$($existingAction.WorkingDirectory)".TrimEnd('\') } else { '' }
+$previousDataPath = if ($existingAction -and "$($existingAction.Arguments)" -match '-ConfigPath "([^"]+)\\config\\config\.json"') { $Matches[1] } else { '' }
+if ($previousInstallPath -and -not $PSBoundParameters.ContainsKey('InstallPath')) { $InstallPath = $previousInstallPath }
+if ($previousDataPath -and -not $PSBoundParameters.ContainsKey('DataPath')) { $DataPath = $previousDataPath }
+$InstallPath = Resolve-AgentFolder -Path $InstallPath -Name 'InstallPath'
+$DataPath = Resolve-AgentFolder -Path $DataPath -Name 'DataPath'
+if ($InstallPath -ieq $DataPath -or $InstallPath.StartsWith("$DataPath\", [StringComparison]::OrdinalIgnoreCase) -or
+    $DataPath.StartsWith("$InstallPath\", [StringComparison]::OrdinalIgnoreCase)) {
+    throw "InstallPath and DataPath must be separate folders, neither inside the other (got '$InstallPath' and '$DataPath')."
+}
+Assert-AgentFolderContent -Path $InstallPath -Name 'InstallPath' -Markers @('Invoke-GatewayLogCollection.ps1', 'modules\ODGO.Agent')
+Assert-AgentFolderContent -Path $DataPath -Name 'DataPath' -Markers @('config', 'state', 'logs')
+
 # Data written by SYSTEM, Administrators, you or the task identities (current and previous) is trusted; anything else is refused.
 $trustedOwners = @('S-1-5-18', 'S-1-5-32-544', 'S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464', $currentUser.User.Value)
 if ($taskUserSid) { $trustedOwners += $taskUserSid.Value }
 if ($existingTaskUser -and $existingTaskUser -notin $systemNames) {
     try { $trustedOwners += (Resolve-AccountSid $existingTaskUser).Value } catch { $null = $_ }
 }
-Assert-TrustedDataFolder -Path $DataPath -TrustedSids $trustedOwners
+Assert-TrustedFolder -Path $InstallPath -TrustedSids $trustedOwners
+Assert-TrustedFolder -Path $DataPath -TrustedSids $trustedOwners
 
 # 1. Configuration: the existing file (if any) plus the parameters, validated before anything changes.
 $configFile = Join-Path $DataPath 'config\config.json'
@@ -218,10 +281,29 @@ elseif ($secret -or $UpdateSecret) {
     throw "-ClientSecret and -UpdateSecret apply to client secret authentication; this agent uses $($authentication.mode)."
 }
 
-# 3. Agent files (skipped when the installed copy of this script runs, for example with -UpdateSecret).
-$sameFolder = [System.IO.Path]::GetFullPath($PSScriptRoot).TrimEnd('\') -ieq [System.IO.Path]::GetFullPath($InstallPath).TrimEnd('\')
-if (-not $sameFolder -and $PSCmdlet.ShouldProcess($InstallPath, 'Install agent files')) {
+# 3. Agent folder: SYSTEM and Administrators full control, everyone else read and execute, because the scheduled task
+#    runs the agent as SYSTEM. The files are copied after the access rules are set, so that they inherit them. The
+#    copy is skipped when the installed copy of this script runs, for example with -UpdateSecret.
+$systemSid = [System.Security.Principal.SecurityIdentifier]::new('S-1-5-18')
+$administratorsSid = [System.Security.Principal.SecurityIdentifier]::new('S-1-5-32-544')
+$installRules = @(@{ Sid = $systemSid; Rights = 'FullControl' }, @{ Sid = $administratorsSid; Rights = 'FullControl' },
+    @{ Sid = [System.Security.Principal.SecurityIdentifier]::new('S-1-5-32-545'); Rights = 'ReadAndExecute' })
+$dataRules = @(@{ Sid = $systemSid; Rights = 'FullControl' }, @{ Sid = $administratorsSid; Rights = 'FullControl' })
+if (-not $runAsSystem) {
+    $installRules += @{ Sid = $taskUserSid; Rights = 'ReadAndExecute' }
+    $dataRules += @{ Sid = $taskUserSid; Rights = 'Modify' }
+}
+if (-not $isElevated) {
+    # Non-elevated run (-SkipElevationCheck, used by the tests): keep access for the current user.
+    $installRules += @{ Sid = $currentUser.User; Rights = 'Modify' }
+    $dataRules += @{ Sid = $currentUser.User; Rights = 'Modify' }
+}
+if ($PSCmdlet.ShouldProcess($InstallPath, 'Create the agent folder, restricted to SYSTEM and Administrators (read for users)')) {
     [void][System.IO.Directory]::CreateDirectory($InstallPath)
+    Set-FolderAccess -Path $InstallPath -Rules $installRules
+}
+$sameFolder = [System.IO.Path]::GetFullPath($PSScriptRoot).TrimEnd('\') -ieq $InstallPath
+if (-not $sameFolder -and $PSCmdlet.ShouldProcess($InstallPath, 'Install agent files')) {
     foreach ($file in @('Install-Agent.ps1', 'Invoke-GatewayLogCollection.ps1', 'Uninstall-Agent.ps1')) {
         Copy-Item -LiteralPath (Join-Path $PSScriptRoot $file) -Destination (Join-Path $InstallPath $file) -Force
     }
@@ -232,27 +314,14 @@ if (-not $sameFolder -and $PSCmdlet.ShouldProcess($InstallPath, 'Install agent f
     Get-ChildItem -LiteralPath $InstallPath -Recurse -File -Include '*.ps1', '*.psm1', '*.psd1' | Unblock-File
 }
 
-# 4. Data folders: SYSTEM and Administrators full control, task identity modify, nobody else.
-foreach ($folder in @($DataPath, (Join-Path $DataPath 'config'), (Join-Path $DataPath 'state'), (Join-Path $DataPath 'logs'))) {
-    if ($PSCmdlet.ShouldProcess($folder, 'Create data folder')) { [void][System.IO.Directory]::CreateDirectory($folder) }
+# 4. Data folders: SYSTEM and Administrators full control, task identity modify, nobody else. The subfolders are
+#    created after the access rules are set, so that they inherit them.
+if ($PSCmdlet.ShouldProcess($DataPath, "Create the data folder, restricted to SYSTEM, Administrators$(if (-not $runAsSystem) { " and $TaskUser" })")) {
+    [void][System.IO.Directory]::CreateDirectory($DataPath)
+    Set-FolderAccess -Path $DataPath -Rules $dataRules
 }
-if ($PSCmdlet.ShouldProcess($DataPath, "Restrict access to SYSTEM, Administrators$(if (-not $runAsSystem) { " and $TaskUser" })")) {
-    $acl = [System.Security.AccessControl.DirectorySecurity]::new()
-    $acl.SetAccessRuleProtection($true, $false)
-    $inherit = [System.Security.AccessControl.InheritanceFlags]'ContainerInherit, ObjectInherit'
-    foreach ($sid in @('S-1-5-18', 'S-1-5-32-544')) {
-        $account = [System.Security.Principal.SecurityIdentifier]::new($sid)
-        $acl.AddAccessRule([System.Security.AccessControl.FileSystemAccessRule]::new($account, 'FullControl', $inherit, 'None', 'Allow'))
-    }
-    if (-not $runAsSystem) {
-        $acl.AddAccessRule([System.Security.AccessControl.FileSystemAccessRule]::new($taskUserSid, 'Modify', $inherit, 'None', 'Allow'))
-    }
-    if (-not $isElevated) {
-        # Non-elevated run (-SkipElevationCheck, used by the tests): keep access for the current user.
-        $acl.AddAccessRule([System.Security.AccessControl.FileSystemAccessRule]::new($currentUser.User, 'Modify', $inherit, 'None', 'Allow'))
-    }
-    # Writes the DACL only (Set-Acl would also try to write the SACL, which requires SeSecurityPrivilege).
-    [System.IO.FileSystemAclExtensions]::SetAccessControl([System.IO.DirectoryInfo]::new($DataPath), $acl)
+foreach ($folder in @((Join-Path $DataPath 'config'), (Join-Path $DataPath 'state'), (Join-Path $DataPath 'logs'))) {
+    if ($PSCmdlet.ShouldProcess($folder, 'Create data folder')) { [void][System.IO.Directory]::CreateDirectory($folder) }
 }
 
 # 5. Configuration file and secret.
@@ -270,7 +339,6 @@ if ($authentication.mode -ne 'ClientSecret' -and (Test-Path -LiteralPath $staleS
 # 6. Scheduled task: registered when it's missing, when -TaskUser or -IntervalMinutes is passed, or when its command
 #    changed (other install or data folder, missing pwsh.exe). Otherwise it's kept as is.
 $arguments = '-NoProfile -NonInteractive -ExecutionPolicy RemoteSigned -File "{0}" -ConfigPath "{1}" -Trigger Scheduled -Quiet' -f (Join-Path $InstallPath 'Invoke-GatewayLogCollection.ps1'), $configFile
-$existingAction = if ($existingTask) { @($existingTask.Actions)[0] } else { $null }
 $existingExecutable = "$($existingAction.Execute)"
 $registerTask = -not $existingTask -or $PSBoundParameters.ContainsKey('IntervalMinutes') -or $PSBoundParameters.ContainsKey('TaskUser') -or
     "$($existingAction.Arguments)" -ne $arguments -or -not $existingExecutable -or -not [System.IO.File]::Exists($existingExecutable)
@@ -295,6 +363,12 @@ Write-Host "  Agent files    : $InstallPath"
 Write-Host "  Configuration  : $configFile"
 Write-Host "  Agent logs     : $(Join-Path $DataPath 'logs')"
 Write-Host "  Scheduled task : $taskMessage"
+if ($previousInstallPath -and $previousInstallPath -ine $InstallPath) {
+    Write-Warning "The agent now runs from '$InstallPath'. The previous agent folder '$previousInstallPath' isn't used anymore: you can delete it."
+}
+if ($previousDataPath -and $previousDataPath -ine $DataPath) {
+    Write-Warning "The agent now uses the data folder '$DataPath'. The previous one, '$previousDataPath', isn't used anymore: delete it once the agent works."
+}
 
 # 7. Connection test (as the current administrator; the scheduled task runs as $TaskUser).
 if (-not $SkipTest) {
@@ -302,7 +376,9 @@ if (-not $SkipTest) {
     Write-Host 'Testing the configuration, authentication and OneLake write access...'
     & (Join-Path $InstallPath 'Invoke-GatewayLogCollection.ps1') -Test -ConfigPath $configFile
     if ($LASTEXITCODE -ne 0) {
-        Write-Warning "The test failed: fix the issues above, then run: & '$(Join-Path $InstallPath 'Invoke-GatewayLogCollection.ps1')' -Test"
+        $testCommand = "& '$(Join-Path $InstallPath 'Invoke-GatewayLogCollection.ps1')' -Test"
+        if ($configFile -ine [System.IO.Path]::GetFullPath((Join-Path $env:ProgramData 'ODGO\config\config.json'))) { $testCommand += " -ConfigPath '$configFile'" }
+        Write-Warning "The test failed: fix the issues above, then run: $testCommand"
         exit 1
     }
 }

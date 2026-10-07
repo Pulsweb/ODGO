@@ -26,6 +26,9 @@ depends on the data volume and the capacity. No latency measurements are publish
 
 ## Agent
 
+The commands use the default agent folder, `%ProgramFiles%\ODGO`. If you installed the agent with another
+`-InstallPath`, use that folder instead.
+
 | Task | How |
 |---|---|
 | Test the configuration, identity and OneLake access | `& "$env:ProgramFiles\ODGO\Invoke-GatewayLogCollection.ps1" -Test` |

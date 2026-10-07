@@ -40,6 +40,7 @@ it with:
 & "$env:ProgramFiles\ODGO\Invoke-GatewayLogCollection.ps1" -Test
 ```
 
+* `%ProgramFiles%\ODGO` is the default agent folder: use yours if you installed the agent with another `-InstallPath`.
 * Keys are camelCase. Unknown keys are rejected, so typos fail fast.
 * Environment variables in paths, such as `%ProgramData%`, are expanded.
 * Running `Install-Agent.ps1` again keeps your edits: it only changes the values passed as parameters.

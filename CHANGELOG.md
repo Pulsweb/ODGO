@@ -19,8 +19,9 @@ First public version of ODGO (On-premises Data Gateway Observability), planned a
   * crash-safe commit protocol (journal, staging and rename, manifest, checkpoint) with idempotent uploads;
   * app registration client secret stored encrypted with DPAPI, or managed identity (Azure VM, Azure Arc-enabled
     server detected automatically);
-  * `Install-Agent.ps1`: one command that installs or upgrades the agent, writes its configuration, stores the
-    secret, registers the scheduled task and tests the connection;
+  * `Install-Agent.ps1`: one command that installs or upgrades the agent in the folder of your choice
+    (`-InstallPath`), writes its configuration, stores the secret, registers the scheduled task and tests the
+    connection;
   * `Invoke-GatewayLogCollection.ps1 -Test` and `-PlanOnly`, multiple gateways per server, telemetry outbox.
 * **Lakehouse processing:** `nb_gwmon_lib` (table contracts and logic), `nb_gwmon_ingest` (Bronze, Silver and Gold,
   every 6 hours) and `nb_gwmon_maintenance` (retention, `OPTIMIZE`/`VACUUM` and validation, once a day), with manifest
