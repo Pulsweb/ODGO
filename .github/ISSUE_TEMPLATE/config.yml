@@ -5,4 +5,4 @@ contact_links:
     about: Report vulnerabilities privately. Don't open a public issue.
   - name: Documentation
     url: https://github.com/Pulsweb/ODGO/tree/main/docs
-    about: Setup, configuration, operations and troubleshooting guides.
+    about: Setup and configuration guides.

@@ -1,5 +1,5 @@
 name: Bug report
-description: Something doesn't work as documented (agent, setup notebook, processing, model or report).
+description: Something doesn't work as documented (agent, setup notebook, processing, model or reports).
 labels: [bug]
 body:
   - type: markdown
@@ -21,7 +21,7 @@ body:
         - Setup notebook
         - Fabric processing (nb_gwmon_ingest, nb_gwmon_maintenance)
         - Semantic model
-        - Report
+        - Reports
         - Documentation
         - Other
     validations:

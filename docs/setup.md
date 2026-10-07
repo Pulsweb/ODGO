@@ -15,7 +15,7 @@ Upgrades run steps 3 and 4 again: see [Upgrade](#upgrade).
 | Where | Requirement |
 |---|---|
 | Fabric workspace | A workspace assigned to a Fabric capacity (F SKU or trial), preferably used only for ODGO, and the Admin or Member role on it |
-| Fabric tenant settings | *Users can access data stored in OneLake with apps external to Fabric* (OneLake settings) and *Service principals can use Fabric APIs* (Developer settings). Both can be limited to a security group that contains the agent identity. See [tenant settings](https://learn.microsoft.com/fabric/admin/about-tenant-settings) |
+| Fabric tenant settings | *Users can access data stored in OneLake with apps external to Fabric* (OneLake settings) and *Service principals can call Fabric public APIs* (Developer settings, on by default). Both can be limited to a security group that contains the agent identity. See [tenant settings](https://learn.microsoft.com/fabric/admin/about-tenant-settings) |
 | Gateway servers | Windows, On-premises data gateway in standard mode, PowerShell 7 installed with the [MSI package](https://learn.microsoft.com/powershell/scripting/install/install-powershell-on-windows#install-the-msi-package), which exists up to version 7.6 (the MSIX package, which the Microsoft Store and winget install by default, can't run as SYSTEM: see [step 4](#4-install-the-agent-on-each-gateway-server)), outbound HTTPS (443) to `login.microsoftonline.com` and `onelake.dfs.fabric.microsoft.com` |
 | Reports | The *Logs* page of each report uses the AppSource *Text Filter* visual, which your tenant must allow |
 
