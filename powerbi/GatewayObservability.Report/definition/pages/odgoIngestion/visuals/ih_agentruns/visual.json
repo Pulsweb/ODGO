@@ -1,0 +1,223 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.2.0/schema.json",
+  "name": "ih_agentruns",
+  "position": {
+    "x": 846.67,
+    "y": 784,
+    "z": 2600,
+    "height": 276,
+    "width": 518.67,
+    "tabOrder": 2600
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Agent Runs"
+                    }
+                  },
+                  "Property": "Started (UTC)"
+                }
+              },
+              "queryRef": "Agent Runs.Started (UTC)",
+              "nativeQueryRef": "Started (UTC)"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Servers"
+                    }
+                  },
+                  "Property": "Server"
+                }
+              },
+              "queryRef": "Servers.Server",
+              "nativeQueryRef": "Server"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Agent Runs"
+                    }
+                  },
+                  "Property": "Status"
+                }
+              },
+              "queryRef": "Agent Runs.Status",
+              "nativeQueryRef": "Status"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Agent Runs"
+                    }
+                  },
+                  "Property": "Segments Uploaded"
+                }
+              },
+              "queryRef": "Agent Runs.Segments Uploaded",
+              "nativeQueryRef": "Segments Uploaded"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Agent Runs"
+                    }
+                  },
+                  "Property": "Bytes Uploaded"
+                }
+              },
+              "queryRef": "Agent Runs.Bytes Uploaded",
+              "nativeQueryRef": "Bytes Uploaded"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Agent Runs"
+                    }
+                  },
+                  "Property": "Errors"
+                }
+              },
+              "queryRef": "Agent Runs.Errors",
+              "nativeQueryRef": "Errors"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Agent Runs"
+                    }
+                  },
+                  "Property": "Warnings"
+                }
+              },
+              "queryRef": "Agent Runs.Warnings",
+              "nativeQueryRef": "Warnings"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Agent Runs"
+                    }
+                  },
+                  "Property": "Agent Version"
+                }
+              },
+              "queryRef": "Agent Runs.Agent Version",
+              "nativeQueryRef": "Agent Version"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Agent Runs"
+                  }
+                },
+                "Property": "Started (UTC)"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "columnHeaders": [
+        {
+          "properties": {
+            "wordWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "total": [
+        {
+          "properties": {
+            "totals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Agent runs'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Heartbeats of the collection agents'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

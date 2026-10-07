@@ -12,7 +12,7 @@ First public version of ODGO (On-premises Data Gateway Observability), planned a
 ### Added
 
 * **Setup notebook** `fabric/ODGO_Setup.ipynb`: imported and run in a Fabric workspace, it creates or upgrades the
-  lakehouse, the notebooks and their schedules, the semantic model and the report in a minute or two, starts the
+  lakehouse, the notebooks and their schedules, the semantic model and the reports in a minute or two, starts the
   first ingestion in the background, then prints the agent install command.
 * **Gateway agent** (PowerShell 7 module and scripts):
   * record-aligned incremental segments for all 12 gateway log types;
@@ -28,8 +28,13 @@ First public version of ODGO (On-premises Data Gateway Observability), planned a
   and checksum validation, quarantine, redaction, schema-drift capture and ingestion-health tables.
 * **Semantic model** in TMDL, Direct Lake on OneLake: every original table, column, measure and relationship, plus
   five ingestion-health tables, 10 relationships and 28 *Ingestion Health* measures (67 measures in total).
-* **Report** in PBIR: the 13 original pages with their drillthrough and tooltip bindings, new *Ingestion Health* and
-  *Ingestion Details* pages, Environment and Server report filters, and a theme instead of background images.
+* **Gateway Monitor report** in PBIR: the 13 original pages with their drillthrough and tooltip bindings, new
+  *Ingestion Health* and *Ingestion Details* pages, Environment and Server report filters, and a theme instead of
+  background images.
+* **ODGO - Gateway Observability report** in PBIR, on the same semantic model, with the ODGO logo and theme: a home
+  page with the analysis paths, then *Overview*, *Requests*, *Queries*, *Logs*, *Mashup*, *System Counters* and
+  *Ingestion Health* pages with a filter panel whose date and gateway selections follow you from page to page, plus
+  the query drillthrough and tooltips of the original report. Its layout is inspired by FUAM.
 
 ### Changed (compared with pbigtwmonitor)
 

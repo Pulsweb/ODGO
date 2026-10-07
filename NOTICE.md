@@ -39,8 +39,8 @@ SOFTWARE.
 
 ## Power BI base theme
 
-`powerbi/GatewayMonitor.Report/StaticResources/SharedResources/BaseThemes/CY22SU03.json` is the Power BI base theme
-that Power BI Desktop writes into every report definition. It was taken unchanged from the original pbigtwmonitor
+`CY22SU03.json`, in `StaticResources/SharedResources/BaseThemes` of both reports in `powerbi/`, is the Power BI base
+theme that Power BI Desktop writes into every report definition. It was taken unchanged from the original pbigtwmonitor
 report definition.
 
 ## Fabric Platform Monitoring (inspiration only)
@@ -52,6 +52,14 @@ Fabric Platform Monitoring is included in this repository, so no license notice 
 comparison found a few identical DAX lines in the semantic model (the *System Counters* measures and the counters
 field parameters). Both projects inherited them from pbigtwmonitor, whose notice is above. Fabric Platform Monitoring
 is credited in the README.
+
+## FUAM (inspiration only)
+
+The layout of the *ODGO - Gateway Observability* report was inspired by the *FUAM Gateway Monitoring From Files*
+report of [FUAM](https://github.com/microsoft/fabric-toolbox/tree/main/monitoring/fabric-unified-admin-monitoring)
+(Fabric Unified Admin Monitoring, Microsoft Fabric Toolbox, MIT License). Its pages, theme and images were created for
+ODGO: no code, query, image or other asset from FUAM is included in this repository, so no license notice is required.
+FUAM is credited in the README.
 
 ## Trademarks
 

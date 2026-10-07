@@ -14,12 +14,14 @@ depends on the data volume and the capacity. No latency measurements are publish
 
 ## Monitoring
 
-* **Ingestion Health page** of the report: for each server, the upload status (*OK*, *Late* after
+* **Ingestion Health page** of both reports: for each server, the upload status (*OK*, *Late* after
   `gold.lateAfterMinutes` without a processed heartbeat, *Missing* after `gold.missingAfterMinutes`, *Failing* when the
-  last run failed; 8 and 24 hours by default), the last upload and the last processed file. Cards show pending
-  segments, rejected records, quarantined files, failed processing runs, the ingestion latency and the uploaded volume.
-* **Ingestion Details page**: issues (rejected records, quarantined files, missing segments, failures, schema drift),
-  agent runs and processing runs.
+  last run failed; 8 and 24 hours by default), the last upload and the last processed file. Cards and charts show
+  pending segments, rejected records, quarantined files, failed processing runs, the ingestion latency and the
+  uploaded volume.
+* **Ingestion issues** (rejected records, quarantined files, missing segments, failures, schema drift), **agent runs**
+  and **processing runs**: at the bottom of the *Ingestion Health* page of the *ODGO - Gateway Observability* report,
+  and on the *Ingestion Details* page of the *Gateway Monitor* report.
 * **Monitoring hub** in Fabric: notebook runs with their output.
 * **Alerts**: set an alert on the *# Servers (Missing Uploads)* or *# Failed Processing Runs* card (Power BI alerts or
   [Fabric Activator](https://learn.microsoft.com/fabric/real-time-intelligence/data-activator/activator-introduction)).

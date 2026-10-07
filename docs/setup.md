@@ -17,7 +17,7 @@ Upgrades run steps 3 and 4 again: see [Upgrade](#upgrade).
 | Fabric workspace | A workspace assigned to a Fabric capacity (F SKU or trial), preferably used only for ODGO, and the Admin or Member role on it |
 | Fabric tenant settings | *Users can access data stored in OneLake with apps external to Fabric* (OneLake settings) and *Service principals can use Fabric APIs* (Developer settings). Both can be limited to a security group that contains the agent identity. See [tenant settings](https://learn.microsoft.com/fabric/admin/about-tenant-settings) |
 | Gateway servers | Windows, On-premises data gateway in standard mode, PowerShell 7.2 or later installed with the [MSI package](https://learn.microsoft.com/powershell/scripting/install/install-powershell-on-windows#install-the-msi-package) (the MSIX package, which the Microsoft Store and winget install by default, can't run as SYSTEM), outbound HTTPS (443) to `login.microsoftonline.com` and `onelake.dfs.fabric.microsoft.com` |
-| Report | The *Logs* page uses the AppSource *Text Filter* visual, which your tenant must allow |
+| Reports | The *Logs* page of each report uses the AppSource *Text Filter* visual, which your tenant must allow |
 
 ## 1. Create an identity for the agents
 
@@ -56,7 +56,9 @@ manage the access to the workspace.
    ([configuration.md](configuration.md#setup-notebook-parameters)). In a minute or two the notebook:
    * creates the lakehouse `lh_gateway_monitor` (with schemas);
    * imports the notebooks `nb_gwmon_lib`, `nb_gwmon_ingest` and `nb_gwmon_maintenance`, attached to the lakehouse;
-   * creates the *Gateway Monitor* semantic model (Direct Lake) and report;
+   * creates the *Gateway Monitor* semantic model (Direct Lake) and two reports on it: *ODGO - Gateway
+     Observability*, which opens on a home page with the analysis paths, and *Gateway Monitor*, with the pages of the
+     original pbigtwmonitor report;
    * schedules `nb_gwmon_ingest` every 6 hours and `nb_gwmon_maintenance` once a day;
    * starts a first run of `nb_gwmon_ingest`, which continues in the background for a few minutes: it creates the
      tables, the landing folder and `processing.json`, then frames the semantic model.
@@ -94,7 +96,7 @@ The installer:
   *WARNING* or *FAIL*, with a fix for each warning or failure.
 
 The agent keeps its state in the `state` subfolder and writes its logs in the `logs` subfolder. The first upload
-starts about 2 minutes later. The server appears on the *Ingestion Health* page of the report after the next
+starts about 2 minutes later. The server appears on the *Ingestion Health* page of the reports after the next
 `nb_gwmon_ingest` run, within 6 hours by default. To see it sooner, run `nb_gwmon_ingest` yourself from the workspace.
 
 Optional parameters: `-ProxyUrl` (outbound proxy), `-IntervalMinutes`, `-TaskUser` (a group managed service account
@@ -123,7 +125,7 @@ folder). Upgrades keep the interval. Keep it at 60 minutes or less: otherwise th
 ## Share the report
 
 The semantic model reads the lakehouse with the identity of each report reader (single sign-on), so readers need read
-access to the lakehouse data. To let readers open the report without that access, bind the model to a fixed
+access to the lakehouse data. To let readers open the reports without that access, bind the model to a fixed
 identity:
 
 1. Open the settings of the *Gateway Monitor* semantic model > **Gateway and cloud connections**.
@@ -131,7 +133,7 @@ identity:
    the [workspace identity](https://learn.microsoft.com/fabric/security/workspace-identity) or a service principal),
    with single sign-on turned off, and map the data source to it.
 
-Then give readers the Viewer role on the workspace, or share the report with them.
+Then give readers the Viewer role on the workspace, or share the reports with them.
 
 ## Upgrade
 

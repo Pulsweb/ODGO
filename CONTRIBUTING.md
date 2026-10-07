@@ -30,7 +30,8 @@ before merging; it isn't published in this repository. In your pull request, des
   landing layout to a local folder.
 * **Notebooks, semantic model and report:** in a test workspace, run the setup notebook with `source` set to the
   archive of your branch, for example `https://github.com/<you>/ODGO/archive/refs/heads/<branch>.zip`.
-  To edit the model and report, open them in Power BI Desktop as a PBIP project.
+  To edit the model and the reports, open `powerbi/GatewayObservability.pbip` or `powerbi/GatewayMonitor.pbip` in
+  Power BI Desktop.
 
 ## Conventions
 
@@ -55,9 +56,10 @@ before merging; it isn't published in this repository. In your pull request, des
 * `fabric/ODGO_Setup.ipynb` keeps its parameters cell first and its run cell last. Increase `SETUP_VERSION` when the
   setup logic changes, so that older copies ask users to import the new one.
 
-### Semantic model and report
+### Semantic model and reports
 
 * Keep the original object names. New measures go in the *Ingestion Health* display folder, with a description.
+* Both reports read the *Gateway Monitor* model: check a model change in both.
 * Edit the TMDL and PBIR files in Power BI Desktop (PBIP format) or as text.
 
 ### Commits and pull requests
