@@ -92,30 +92,7 @@ data sooner. To upgrade, run the setup notebook again, then the new `Install-Age
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    subgraph OnPrem["Gateway servers (one agent per server)"]
-        L["Gateway log files<br/>(trace and mashup logs,<br/>performance reports, metadata)"] --> A["ODGO agent<br/>(PowerShell 7 scheduled task)"]
-    end
-    A -- "HTTPS 443, Microsoft Entra token<br/>(client secret or managed identity)" --> LZ
-    subgraph Fabric["Microsoft Fabric workspace"]
-        LZ["Lakehouse files: landing zone<br/>raw segments, manifests,<br/>run telemetry"] --> B["Bronze<br/>raw records"]
-        B --> S["Silver<br/>parsed, typed, redacted"] --> G["Gold<br/>star schema"]
-        G --> M["Semantic model<br/>(Direct Lake on OneLake)"] --> R["Power BI reports"]
-        N["Notebooks: ingest every 6 hours,<br/>maintenance once a day"] -.-> B
-    end
-```
-
-1. **Collect.** On each gateway server, the agent finds the gateway's log folders, cuts new data at record boundaries
-   and uploads it to OneLake through the ADLS Gen2 (DFS) API, with a manifest and a telemetry document (heartbeat)
-   per run.
-2. **Land.** Files are written once, under paths partitioned by environment, cluster, gateway, server, log type and
-   date.
-3. **Process.** `nb_gwmon_ingest` reads only files listed in committed manifests and verifies their size and SHA-256
-   (Bronze), parses, types, deduplicates and redacts them (Silver), then rebuilds the affected months of the star
-   schema (Gold).
-4. **Analyze.** The Direct Lake semantic model reads the Gold tables directly: no data copy and no scheduled import
-   refresh.
+![ODGO architecture: an agent on each gateway server uploads the gateway logs over HTTPS to a lakehouse in a Microsoft Fabric workspace, where scheduled notebooks build the Bronze, Silver and Gold tables read by a Direct Lake semantic model and the Power BI reports](docs/images/architecture.png)
 
 ## What is collected
 
