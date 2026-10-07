@@ -172,21 +172,6 @@ checked in October 2026.*
 Don't report security vulnerabilities in public issues: use **Report a vulnerability** in the repository's
 **Security** tab.
 
-## Documentation
-
-| Topic | Document |
-|---|---|
-| Installation, upgrade, sharing the reports, security notes | [docs/setup.md](docs/setup.md) |
-| Every setting: setup notebook, agent, processing | [docs/configuration.md](docs/configuration.md) |
-| Monitoring, agent tasks, backfill, retention, troubleshooting | [docs/operations.md](docs/operations.md) |
-| Lakehouse tables and semantic model (generated) | [docs/data-model.md](docs/data-model.md) |
-| How to contribute | [CONTRIBUTING.md](CONTRIBUTING.md) |
-
-> [!NOTE]
-> Some technical names keep the prefix of the first version of the code base: the Fabric items `nb_gwmon_*` and
-> `lh_gateway_monitor`, the OneLake folder `Files/gateway-monitor` and the *Gateway Monitor* report (the original
-> pbigtwmonitor name).
-
 ## Contributing
 
 Contributions are welcome: bug fixes, support for new log formats, report improvements and documentation. Read
