@@ -1,0 +1,263 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json",
+  "name": "ReportSectione0c91d96558ab0b6a4ce",
+  "displayName": "Logs",
+  "displayOption": "FitToPage",
+  "height": 720.0,
+  "width": 1280.0,
+  "pageBinding": {
+    "name": "Pod4",
+    "type": "Drillthrough",
+    "parameters": [
+      {
+        "name": "Param_Filterd0cac016eb52070a6d85",
+        "boundFilter": "Filterd0cac016eb52070a6d85",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Requests"
+              }
+            },
+            "Property": "RequestId"
+          }
+        }
+      }
+    ]
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filterd0cac016eb52070a6d85",
+        "ordinal": 0,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Requests"
+              }
+            },
+            "Property": "RequestId"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "Filter43aa6112db380dc1d0ab",
+        "ordinal": 1,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Logs"
+              }
+            },
+            "Property": "Level"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filter496c6642d022876d99fe",
+        "ordinal": 2,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Logs"
+              }
+            },
+            "Property": "EventType"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User",
+        "objects": {
+          "general": [
+            {
+              "properties": {
+                "isInvertedSelectionMode": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "true"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "Filter85026a10e0e50b403404",
+        "ordinal": 3,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Logs"
+              }
+            },
+            "Property": "GatewayId"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filtered1cbb265e56b1291a5c",
+        "ordinal": 4,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Gateways"
+              }
+            },
+            "Property": "Gateway"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filter930f2f117225cf46cd40",
+        "ordinal": 5,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Logs"
+              }
+            },
+            "Property": "EventText"
+          }
+        },
+        "type": "Advanced",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filter990d18fcc5e8505c503f",
+        "ordinal": 6,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Logs"
+              }
+            },
+            "Property": "RootActivityId"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filter0e73b04f59a261803938",
+        "ordinal": 7,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Logs"
+              }
+            },
+            "Property": "ClientActivityId"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filter92de2be3476ae6b6d285",
+        "ordinal": 8,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Logs"
+              }
+            },
+            "Property": "ActivityId"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filter9a92294a5b677380a78b",
+        "ordinal": 9,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Logs"
+              }
+            },
+            "Property": "CurrentGatewayClientPipelineId"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filter7514aa3a0076080c02d0",
+        "ordinal": 10,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Logs"
+              }
+            },
+            "Property": "ActivityType"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      }
+    ],
+    "filterSortOrder": "Custom"
+  },
+  "objects": {
+    "outspacePane": [
+      {
+        "properties": {
+          "width": {
+            "expr": {
+              "Literal": {
+                "Value": "253L"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "background": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'#F2F2F2'"
+                  }
+                }
+              }
+            }
+          },
+          "transparency": {
+            "expr": {
+              "Literal": {
+                "Value": "0D"
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}

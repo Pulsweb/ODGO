@@ -1,0 +1,107 @@
+relationship 2a031207-2acf-42ea-a1a6-bf81322873b1
+	fromColumn: Logs.GatewayId
+	toColumn: Gateways.GatewayId
+
+relationship 5f090e8b-592f-43a7-922c-3c65182b00e4
+	fromColumn: Logs.Date
+	toColumn: Calendar.Date
+
+relationship 444d5ec5-1ec3-4d7a-81e3-ff2d59d34749
+	fromColumn: Logs.TimeId
+	toColumn: Time.TimeId
+
+relationship 7db21c2d-361a-4d3f-bb77-0ecbfbf298ac
+	fromColumn: Queries.TimeId
+	toColumn: Time.TimeId
+
+relationship fb4e6e90-435e-443b-b9c8-99e6f4e35aba
+	fromColumn: 'Mashup Container Profile'.GatewayId
+	toColumn: Gateways.GatewayId
+
+relationship 26079eb7-57cc-4c3c-a34b-2c0408e69169
+	fromColumn: 'System Counters'.Date
+	toColumn: Calendar.Date
+
+relationship 69be6715-813e-450c-9581-b75f79bdac64
+	fromColumn: 'System Counters'.TmeId
+	toColumn: Time.TimeId
+
+relationship 85497eba-c9b1-4172-8c4a-573aed631984
+	fromColumn: Queries.GatewayId
+	toColumn: Gateways.GatewayId
+
+relationship 03a2fb66-1aca-4886-9f57-a6dca1e68757
+	fromColumn: 'Mashup Logs'.Date
+	toColumn: Calendar.Date
+
+relationship 26e7f39c-1f6d-4335-9a5d-6099776a3ec7
+	fromColumn: 'Mashup Logs'.TimeId
+	toColumn: Time.TimeId
+
+relationship ab6b1330-e6a9-4e8c-bcfa-3f6d4072088c
+	fromColumn: Queries.'Start Date'
+	toColumn: Calendar.Date
+
+relationship 9c3cf784-5d5c-42a5-b6d3-29d3108522f4
+	fromColumn: 'Mashup Logs'.GatewayId
+	toColumn: Gateways.GatewayId
+
+relationship 3d311b2b-0944-4894-b2fb-b1ebd193ed8e
+	crossFilteringBehavior: bothDirections
+	fromColumn: 'Queries - Datasources'.QueryTrackingId
+	toColumn: Queries.QueryTrackingId
+
+relationship b8b87b74-9188-42d6-9b15-cbe6129fcf94
+	isActive: false
+	fromColumn: Requests.Date
+	toColumn: Calendar.Date
+
+relationship fcd118d1-a8a8-41ed-8fc6-be56eabc6b10
+	fromColumn: Logs.RootActivityId
+	toColumn: Requests.RequestId
+
+relationship 27cf2810-9611-47d6-9bed-bf590670ea3e
+	crossFilteringBehavior: bothDirections
+	fromColumn: Queries.RequestId
+	toColumn: Requests.RequestId
+
+relationship 04607744-c736-5be3-866a-20826e3646d1
+	fromColumn: 'System Counters'.GatewayId
+	toColumn: Gateways.GatewayId
+
+relationship 455bef2f-d548-5a81-8fdf-76d0cdada488
+	fromColumn: 'Ingestion Uploads'.ServerId
+	toColumn: Servers.ServerId
+
+relationship 3b0899e0-8ebb-570c-905c-364d7ef6d601
+	fromColumn: 'Agent Runs'.ServerId
+	toColumn: Servers.ServerId
+
+relationship f9556bed-915b-5673-ae74-2aa71f2c3a54
+	fromColumn: 'Ingestion Issues'.ServerId
+	toColumn: Servers.ServerId
+
+relationship d6982364-db96-59cc-b5bb-42bc59c805ef
+	fromColumn: 'Ingestion Uploads'.GatewayId
+	toColumn: Gateways.GatewayId
+
+relationship 58c8346d-a573-5275-bcbc-8c12fe92b091
+	fromColumn: 'Ingestion Issues'.GatewayId
+	toColumn: Gateways.GatewayId
+
+relationship 550007ca-f2fa-512d-b815-2e2b3a60b368
+	fromColumn: 'Ingestion Uploads'.'Upload Date'
+	toColumn: Calendar.Date
+
+relationship e67e41ff-a94e-5d6e-a19f-89b0d01b64fb
+	fromColumn: 'Agent Runs'.'Run Date'
+	toColumn: Calendar.Date
+
+relationship a686fbf0-336e-55fa-bf9e-d6c957762a8a
+	fromColumn: 'Processing Runs'.'Run Date'
+	toColumn: Calendar.Date
+
+relationship f1be907d-64c1-585b-97a1-238841dc82ed
+	fromColumn: 'Ingestion Issues'.'Detected Date'
+	toColumn: Calendar.Date
+

@@ -1,0 +1,109 @@
+/// Dataset/workspace ids per request extracted from evaluation traces.
+table LogsArtifactTrace
+	isHidden
+	lineageTag: b5bfd733-1ce1-4dbf-a62c-9e09d7f349eb
+	sourceLineageTag: [gold].[logs_artifact_trace]
+
+	column CurrentActivityId
+		dataType: string
+		isHidden
+		lineageTag: e55618a1-283f-4911-988d-d16fa0609534
+		sourceLineageTag: current_activity_id
+		summarizeBy: none
+		sourceColumn: current_activity_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column DatasetId
+		dataType: string
+		isHidden
+		lineageTag: fba9bbf7-38e7-43b5-b1a0-09f2713a782f
+		sourceLineageTag: dataset_id
+		summarizeBy: none
+		sourceColumn: dataset_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column GatewayId
+		dataType: string
+		isHidden
+		lineageTag: 9c4f5618-8695-417a-8834-7ca7fdb82179
+		sourceLineageTag: gateway_id
+		summarizeBy: none
+		sourceColumn: gateway_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column LogFileName
+		dataType: string
+		isHidden
+		lineageTag: 3cba3833-6680-4872-bb3a-3f6c9c783f04
+		sourceLineageTag: log_file_name
+		summarizeBy: none
+		sourceColumn: log_file_name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column QueryType
+		dataType: string
+		isHidden
+		lineageTag: 26932e8e-375d-4da5-b49c-9e6b00c752b8
+		sourceLineageTag: query_type
+		summarizeBy: none
+		sourceColumn: query_type
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column RootActivityId
+		dataType: string
+		isHidden
+		lineageTag: e5a960c7-75de-41d0-adf0-a10a36468564
+		sourceLineageTag: root_activity_id
+		summarizeBy: none
+		sourceColumn: root_activity_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column SKU
+		dataType: string
+		isHidden
+		lineageTag: 508d02e3-f8db-4ef5-addb-8189f8df1bcf
+		sourceLineageTag: sku
+		summarizeBy: none
+		sourceColumn: sku
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column WorkspaceId
+		dataType: string
+		isHidden
+		lineageTag: 06036fc9-2eba-4be9-affc-f43ccbdca97b
+		sourceLineageTag: workspace_id
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition LogsArtifactTrace = entity
+		mode: directLake
+		source
+			entityName: logs_artifact_trace
+			schemaName: gold
+			expressionSource: 'DirectLake - Gateway Monitor'
+

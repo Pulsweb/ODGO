@@ -1,0 +1,261 @@
+/// Uploaded segments and their processing status (new ingestion metric).
+table 'Ingestion Uploads'
+	lineageTag: b009109b-169f-518f-8849-7fa798e78bb7
+	sourceLineageTag: [gold].[ingestion_uploads]
+
+	/// Segments uploaded by the agents (ingestion window).
+	measure '# Uploaded Segments' = COUNTROWS('Ingestion Uploads')
+		formatString: #,0
+		displayFolder: Ingestion Health
+		lineageTag: 7108dcd0-cac0-5cfd-8db7-6f6403500b63
+
+	/// Uploaded volume in MB.
+	measure 'Uploaded MB' = DIVIDE(SUM('Ingestion Uploads'[Bytes]), 1048576)
+		formatString: #,0.0
+		displayFolder: Ingestion Health
+		lineageTag: f7920fd5-0ac8-5c12-b628-b4f9bd62528b
+
+	/// Records parsed from the uploaded segments.
+	measure '# Records Ingested' = SUM('Ingestion Uploads'[Records])
+		formatString: #,0
+		displayFolder: Ingestion Health
+		lineageTag: 87c9bf8a-9e9f-5d5e-9f7c-ce32b3ff0cd9
+
+	/// Uploaded segments awaiting processing (Pending) or not found yet (Missing).
+	measure '# Pending Segments' = COALESCE(CALCULATE(COUNTROWS('Ingestion Uploads'), 'Ingestion Uploads'[Status] IN {"Pending", "Missing"}), 0)
+		formatString: #,0
+		displayFolder: Ingestion Health
+		lineageTag: 35f604bd-e636-5e7e-9766-ec2f72eaafb0
+
+	/// Average minutes between the last write of the source file and processing.
+	measure 'Avg. Ingestion Latency (min)' = AVERAGE('Ingestion Uploads'[Ingestion Latency (min)])
+		formatString: #,0.0
+		displayFolder: Ingestion Health
+		lineageTag: 3bd1c959-8dd6-5e9b-a4a0-ea12a8fe816c
+
+	/// Maximum minutes between the last write of the source file and processing.
+	measure 'Max Ingestion Latency (min)' = MAX('Ingestion Uploads'[Ingestion Latency (min)])
+		formatString: #,0.0
+		displayFolder: Ingestion Health
+		lineageTag: 817e0158-c3a8-5e62-98db-1dd243e6ad57
+
+	column 'Segment Id'
+		dataType: string
+		lineageTag: a46ec973-4c29-5daf-8710-60111cba5158
+		sourceLineageTag: segment_id
+		summarizeBy: none
+		sourceColumn: segment_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column ServerId
+		dataType: string
+		isHidden
+		lineageTag: 5f795ff0-aa97-5519-a3de-5e17a49eaee0
+		sourceLineageTag: server_id
+		summarizeBy: none
+		sourceColumn: server_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column GatewayId
+		dataType: string
+		isHidden
+		lineageTag: 17e501bf-7c96-5bfb-9b43-a7423662db43
+		sourceLineageTag: gateway_id
+		summarizeBy: none
+		sourceColumn: gateway_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column Environment
+		dataType: string
+		lineageTag: 25c1a93a-ec68-54bd-8166-8d1fe29d546a
+		sourceLineageTag: environment
+		summarizeBy: none
+		sourceColumn: environment
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Cluster Id'
+		dataType: string
+		lineageTag: 4d6ee5d2-62f0-5681-8487-a1d92e046ec0
+		sourceLineageTag: cluster_id
+		summarizeBy: none
+		sourceColumn: cluster_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Log Type'
+		dataType: string
+		lineageTag: 12508d61-3869-5433-a8be-2f1b0c7ef8ad
+		sourceLineageTag: log_type
+		summarizeBy: none
+		sourceColumn: log_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Source File'
+		dataType: string
+		lineageTag: 19766db3-6eeb-5c71-a730-193fbe4a831e
+		sourceLineageTag: source_file_name
+		summarizeBy: none
+		sourceColumn: source_file_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Raw Path'
+		dataType: string
+		lineageTag: 078510af-db6d-5cd1-954f-c91f15828468
+		sourceLineageTag: raw_path
+		summarizeBy: none
+		sourceColumn: raw_path
+
+		annotation SummarizationSetBy = Automatic
+
+	column Bytes
+		dataType: int64
+		formatString: #,0
+		lineageTag: 1d1f44aa-3cfa-564c-ab19-111e9705e680
+		sourceLineageTag: byte_count
+		summarizeBy: sum
+		sourceColumn: byte_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column Records
+		dataType: int64
+		formatString: #,0
+		lineageTag: a00bccbe-3e92-5b29-a432-267ff07a51d4
+		sourceLineageTag: record_count
+		summarizeBy: sum
+		sourceColumn: record_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Malformed Records'
+		dataType: int64
+		formatString: #,0
+		lineageTag: f97de996-4b10-5ed4-acfa-7c1ebb91b7d6
+		sourceLineageTag: malformed_count
+		summarizeBy: sum
+		sourceColumn: malformed_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Source Last Write (UTC)'
+		dataType: dateTime
+		formatString: yyyy-mm-dd hh:nn:ss
+		lineageTag: f2c34cb0-14b6-5232-866b-6defd2362e66
+		sourceLineageTag: source_last_write_utc
+		summarizeBy: none
+		sourceColumn: source_last_write_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Uploaded (UTC)'
+		dataType: dateTime
+		formatString: yyyy-mm-dd hh:nn:ss
+		lineageTag: a52e044c-88b4-54ab-a8c5-39d6fcad693e
+		sourceLineageTag: uploaded_utc
+		summarizeBy: none
+		sourceColumn: uploaded_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Upload Date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 7fd66d63-ef08-5307-987c-a1950316861d
+		sourceLineageTag: upload_date
+		summarizeBy: none
+		sourceColumn: upload_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Processed (UTC)'
+		dataType: dateTime
+		formatString: yyyy-mm-dd hh:nn:ss
+		lineageTag: 3011fe14-d63e-58a7-af38-dff9444ac9cf
+		sourceLineageTag: processed_utc
+		summarizeBy: none
+		sourceColumn: processed_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	column Status
+		dataType: string
+		lineageTag: 78b35a29-6e60-56d9-a5ed-182f42f1ea7e
+		sourceLineageTag: status
+		summarizeBy: none
+		sourceColumn: status
+
+		annotation SummarizationSetBy = Automatic
+
+	column Attempts
+		dataType: int64
+		formatString: 0
+		lineageTag: 6b1e4de5-1da1-5a1c-8049-aed2cd3ffbda
+		sourceLineageTag: attempts
+		summarizeBy: none
+		sourceColumn: attempts
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Upload Latency (min)'
+		dataType: double
+		formatString: #,0.0
+		lineageTag: 72148d07-8c0c-5a48-9407-f024a7b9aca8
+		sourceLineageTag: upload_latency_minutes
+		summarizeBy: average
+		sourceColumn: upload_latency_minutes
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Processing Latency (min)'
+		dataType: double
+		formatString: #,0.0
+		lineageTag: 7f68c3b1-bc35-5dc9-9d42-58f7b2d390fc
+		sourceLineageTag: processing_latency_minutes
+		summarizeBy: average
+		sourceColumn: processing_latency_minutes
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ingestion Latency (min)'
+		dataType: double
+		formatString: #,0.0
+		lineageTag: b22c56fb-eaec-535d-8a8b-fe523467df74
+		sourceLineageTag: total_latency_minutes
+		summarizeBy: average
+		sourceColumn: total_latency_minutes
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Agent Run Id'
+		dataType: string
+		lineageTag: 1be9063c-6ef1-593c-a145-fb7b2b0192d0
+		sourceLineageTag: manifest_run_id
+		summarizeBy: none
+		sourceColumn: manifest_run_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column Error
+		dataType: string
+		lineageTag: 71f52dd3-340c-5266-96ff-a9e68e44e38a
+		sourceLineageTag: error
+		summarizeBy: none
+		sourceColumn: error
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Ingestion Uploads' = entity
+		mode: directLake
+		source
+			entityName: ingestion_uploads
+			schemaName: gold
+			expressionSource: 'DirectLake - Gateway Monitor'
+

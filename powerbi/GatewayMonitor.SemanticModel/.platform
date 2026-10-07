@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "Gateway Monitor",
+    "description": "On-premises data gateway monitoring (Direct Lake on OneLake over lh_gateway_monitor gold tables)."
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "e48fc5fe-9192-5bbf-a60d-7fbda2db5b6b"
+  }
+}

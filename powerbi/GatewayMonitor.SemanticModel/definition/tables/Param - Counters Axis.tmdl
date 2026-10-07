@@ -1,0 +1,50 @@
+table 'Param - Counters Axis'
+	isHidden
+	lineageTag: b57667e9-000e-4b80-9591-f161611d5ca4
+
+	column 'Param - Counter Axis'
+		isHidden
+		lineageTag: 70dc271b-6e7f-4a02-9664-967bab612ffc
+		summarizeBy: none
+		sourceColumn: [Value1]
+		sortByColumn: 'Param - Counter Axis Order'
+
+		relatedColumnDetails
+			groupByColumn: 'Param - Counter Axis Fields'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Param - Counter Axis Fields'
+		isHidden
+		lineageTag: 6302ebd6-2315-49fe-b6b1-f9e50e9d6ca2
+		summarizeBy: none
+		sourceColumn: [Value2]
+		sortByColumn: 'Param - Counter Axis Order'
+
+		extendedProperty ParameterMetadata =
+				{
+				  "kind": 2,
+				  "version": 3
+				}
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Param - Counter Axis Order'
+		isHidden
+		formatString: 0
+		lineageTag: c17cc19e-9548-483e-a9d6-5dfc6a6a2b7c
+		summarizeBy: sum
+		sourceColumn: [Value3]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Param - Counters Axis-8aec5235-32e6-4f3a-9a53-4dc9bdccbaeb' = calculated
+		mode: import
+		source =
+				{
+				    ("Daily", NAMEOF('Calendar'[Date]), 0),
+				    ("Agg. Window", NAMEOF('System Counters'[AggregationEndTimeUTC]), 1)
+				}
+
+	annotation PBI_Id = 2c7118c66d814168af1c44f53b31ea82
+

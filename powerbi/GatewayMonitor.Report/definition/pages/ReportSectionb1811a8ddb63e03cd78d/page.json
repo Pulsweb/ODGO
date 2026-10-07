@@ -1,0 +1,219 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json",
+  "name": "ReportSectionb1811a8ddb63e03cd78d",
+  "displayName": "Queries",
+  "displayOption": "FitToPage",
+  "height": 720.0,
+  "width": 1280.0,
+  "pageBinding": {
+    "name": "Pod2",
+    "type": "Drillthrough",
+    "parameters": [
+      {
+        "name": "Param_Filterd9ace86b21f347a7dae6",
+        "boundFilter": "Filterd9ace86b21f347a7dae6",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Requests"
+              }
+            },
+            "Property": "RequestId"
+          }
+        }
+      }
+    ]
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filterd9ace86b21f347a7dae6",
+        "ordinal": 0,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Requests"
+              }
+            },
+            "Property": "RequestId"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "Filter31bf993a49893e4763d5",
+        "ordinal": 1,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Queries"
+              }
+            },
+            "Property": "RequestId"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filter7603a55ae0b80f81333d",
+        "ordinal": 2,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Queries"
+              }
+            },
+            "Property": "GatewayId"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filter27a8a7839f000629b97b",
+        "ordinal": 3,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Queries"
+              }
+            },
+            "Property": "QueryType"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filter282351346006f4d4359d",
+        "ordinal": 4,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Queries"
+              }
+            },
+            "Property": "QueryTrackingId"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filtere4ce09c666b6b0810b0a",
+        "ordinal": 5,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Queries - Datasources"
+              }
+            },
+            "Property": "DataSource - Kind"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filter85a79aacaff111fef3dc",
+        "ordinal": 6,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Queries - Datasources"
+              }
+            },
+            "Property": "DataSource - Path"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filter64a350aee4b0709c630c",
+        "ordinal": 7,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Queries"
+              }
+            },
+            "Property": "DatasetId"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filter5141aa2629d4cdd30187",
+        "ordinal": 8,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Queries"
+              }
+            },
+            "Property": "WorkspaceId"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filter9dd29dc02072e90baa6a",
+        "ordinal": 9,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Queries"
+              }
+            },
+            "Property": "Success"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      }
+    ],
+    "filterSortOrder": "Custom"
+  },
+  "objects": {
+    "background": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'#F2F2F2'"
+                  }
+                }
+              }
+            }
+          },
+          "transparency": {
+            "expr": {
+              "Literal": {
+                "Value": "0D"
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}

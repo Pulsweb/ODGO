@@ -1,0 +1,317 @@
+/// Date dimension (UTC dates).
+table Calendar
+	lineageTag: fb586f03-44c9-4471-9c96-3235e31b41ae
+	sourceLineageTag: [gold].[calendar]
+	dataCategory: Time
+
+	column Date
+		dataType: dateTime
+		isKey
+		formatString: yyyy-mm-dd
+		lineageTag: 1accf5de-97c2-45f4-b295-07f28fe076fb
+		sourceLineageTag: date
+		summarizeBy: none
+		sourceColumn: date
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column DateId
+		dataType: int64
+		formatString: 0
+		lineageTag: 18328ae9-9e63-4cb7-898f-66556b25ae36
+		sourceLineageTag: date_id
+		summarizeBy: none
+		sourceColumn: date_id
+
+		annotation SummarizationSetBy = User
+
+	column Day
+		dataType: int64
+		formatString: 0
+		lineageTag: 48b691e3-0515-4797-b823-daa21bf1dd6a
+		sourceLineageTag: day
+		summarizeBy: none
+		sourceColumn: day
+
+		annotation SummarizationSetBy = User
+
+	column 'Day (Relative)'
+		dataType: int64
+		formatString: 0
+		lineageTag: 38c86995-0778-4ff1-8d88-caf072d653c1
+		sourceLineageTag: day_relative
+		summarizeBy: none
+		sourceColumn: day_relative
+
+		annotation SummarizationSetBy = User
+
+	column 'Has Logs?'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: a07ad191-445e-4898-9dd4-ecbdac04bcc8
+		sourceLineageTag: has_logs
+		summarizeBy: none
+		sourceColumn: has_logs
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month
+		dataType: string
+		lineageTag: 42f182e1-dd6e-4629-b9f9-19df683ea786
+		sourceLineageTag: month_short
+		summarizeBy: none
+		sourceColumn: month_short
+		sortByColumn: 'Month (#)'
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Month (#)'
+		dataType: int64
+		formatString: 0
+		lineageTag: dd714d39-da2d-42e2-9e6d-e65daa1f453a
+		sourceLineageTag: month_number
+		summarizeBy: none
+		sourceColumn: month_number
+
+		annotation SummarizationSetBy = User
+
+	column 'Month (Long)'
+		dataType: string
+		lineageTag: afe5cb14-9b9d-4c4b-88b1-846bb6e7fc5f
+		sourceLineageTag: month_long
+		summarizeBy: none
+		sourceColumn: month_long
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Month (Relative)'
+		dataType: int64
+		formatString: 0
+		lineageTag: 6f5d0d37-bf84-4f9c-ae0b-cecc24655212
+		sourceLineageTag: month_relative
+		summarizeBy: none
+		sourceColumn: month_relative
+
+		annotation SummarizationSetBy = User
+
+	column 'Month (Year)'
+		dataType: string
+		lineageTag: 5cc36558-e77f-44fd-8de7-3f775b6a2088
+		sourceLineageTag: month_year
+		summarizeBy: none
+		sourceColumn: month_year
+		sortByColumn: MonthYearId
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthYearId
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: bf94caad-43b2-450f-b5b5-e7a020c6743f
+		sourceLineageTag: month_year_id
+		summarizeBy: none
+		sourceColumn: month_year_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column Quarter
+		dataType: int64
+		formatString: 0
+		lineageTag: 939eeaa5-e019-431a-b1a7-215ccc3c87d5
+		sourceLineageTag: quarter
+		summarizeBy: none
+		sourceColumn: quarter
+
+		annotation SummarizationSetBy = User
+
+	column 'Quarter (Year)'
+		dataType: string
+		lineageTag: e36549b4-8616-4006-b8af-9bafa69744c9
+		sourceLineageTag: quarter_year
+		summarizeBy: none
+		sourceColumn: quarter_year
+		sortByColumn: QuarterYearId
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column QuarterYearId
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 9bbae8a8-e068-4128-a011-cf7e6d2ede7d
+		sourceLineageTag: quarter_year_id
+		summarizeBy: none
+		sourceColumn: quarter_year_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column Semester
+		dataType: int64
+		formatString: 0
+		lineageTag: ae019eab-f245-4a9f-8386-2f61235ea05e
+		sourceLineageTag: semester
+		summarizeBy: none
+		sourceColumn: semester
+
+		annotation SummarizationSetBy = User
+
+	column 'Semester (Year)'
+		dataType: string
+		lineageTag: 9ec3c851-b5d8-46fc-a8c6-9276553b2089
+		sourceLineageTag: semester_year
+		summarizeBy: none
+		sourceColumn: semester_year
+		sortByColumn: SemesterYearId
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column SemesterYearId
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 159d4264-a372-4cb1-90b9-5badc0c17918
+		sourceLineageTag: semester_year_id
+		summarizeBy: none
+		sourceColumn: semester_year_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column Week
+		dataType: int64
+		formatString: 0
+		lineageTag: 10811171-b68a-4306-beec-a2ecc58f2ad2
+		sourceLineageTag: week
+		summarizeBy: none
+		sourceColumn: week
+
+		annotation SummarizationSetBy = User
+
+	column 'Week (Relative)'
+		dataType: int64
+		formatString: 0
+		lineageTag: 229d5ff6-3462-45dd-aac8-b66ec4e4c1fc
+		sourceLineageTag: week_relative
+		summarizeBy: none
+		sourceColumn: week_relative
+
+		annotation SummarizationSetBy = User
+
+	column 'Week (Year)'
+		dataType: string
+		lineageTag: 6b774431-6d23-49b3-af4b-cb68b6315f9d
+		sourceLineageTag: week_year
+		summarizeBy: none
+		sourceColumn: week_year
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Week Day'
+		dataType: string
+		lineageTag: 459025eb-985d-4461-83b1-fe6ff1a05edc
+		sourceLineageTag: week_day
+		summarizeBy: none
+		sourceColumn: week_day
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Week Day (#)'
+		dataType: int64
+		formatString: 0
+		lineageTag: 425249ec-8cfd-4525-b666-26964fd93c1b
+		sourceLineageTag: week_day_number
+		summarizeBy: none
+		sourceColumn: week_day_number
+
+		annotation SummarizationSetBy = User
+
+	column 'Week End Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 27599f08-baac-4624-a1e5-348acb2e2b63
+		sourceLineageTag: week_end_date
+		summarizeBy: none
+		sourceColumn: week_end_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Week Start Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 255e9968-610b-4e0b-a1b3-f6f168020fae
+		sourceLineageTag: week_start_date
+		summarizeBy: none
+		sourceColumn: week_start_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column WeekYearId
+		dataType: int64
+		formatString: 0
+		lineageTag: f2f9a17b-be95-414e-b5cd-dc6eb22a6519
+		sourceLineageTag: week_year_id
+		summarizeBy: none
+		sourceColumn: week_year_id
+
+		annotation SummarizationSetBy = User
+
+	column 'Work Day'
+		dataType: string
+		lineageTag: 99e65d11-6349-4a9e-b795-d6a288018736
+		sourceLineageTag: work_day
+		summarizeBy: none
+		sourceColumn: work_day
+
+		annotation SummarizationSetBy = Automatic
+
+	column Year
+		dataType: int64
+		formatString: 0
+		lineageTag: 98474f42-ce29-407d-8f19-5d20a812459e
+		sourceLineageTag: year
+		summarizeBy: none
+		sourceColumn: year
+
+		annotation SummarizationSetBy = User
+
+	column 'Year (Relative)'
+		dataType: int64
+		formatString: 0
+		lineageTag: 25418f18-2e25-4cb1-ba9f-90bcc58352b5
+		sourceLineageTag: year_relative
+		summarizeBy: none
+		sourceColumn: year_relative
+
+		annotation SummarizationSetBy = User
+
+	partition Calendar = entity
+		mode: directLake
+		source
+			entityName: calendar
+			schemaName: gold
+			expressionSource: 'DirectLake - Gateway Monitor'
+

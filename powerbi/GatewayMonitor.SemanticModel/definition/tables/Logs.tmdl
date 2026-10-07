@@ -1,0 +1,215 @@
+/// Gateway log records loaded into the model (gold.logTypes).
+table Logs
+	lineageTag: 82dec248-9403-44c4-a7f3-a765d766780a
+	sourceLineageTag: [gold].[logs]
+
+	measure '# Logs' = COUNTROWS('Logs')
+		formatString: #,0
+		lineageTag: ee08c3f2-c94b-4d13-8b4a-eb33597cd639
+
+	measure '# Files' = DISTINCTCOUNT('Logs'[LogFileName])
+		formatString: 0
+		lineageTag: 2318bbad-f61c-42d8-ae08-104193f1f271
+
+	measure '# Gateways (Logs)' = DISTINCTCOUNT('Logs'[GatewayId])
+		formatString: 0
+		lineageTag: a1cb7376-bc1e-44d0-84ad-cdc5fedc4711
+
+	measure 'Logs (k)' = DIVIDE('Logs'[# Logs], 1000, "")
+		lineageTag: a6ffb57e-fa06-45e1-9033-761de4c5e7a3
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '# Logs (Errors)' = CALCULATE([# Logs], 'Logs'[Level] = "Error")
+		formatString: #,0
+		lineageTag: 8491a584-9436-4ada-bc97-6786a3cb066c
+
+	measure '# Logs (NonErrors)' = CALCULATE([# Logs], 'Logs'[Level] <> "Error")
+		formatString: #,0
+		lineageTag: b7e1426d-1b68-4c42-b574-db47ff39a2e3
+
+	column ActivityId
+		dataType: string
+		lineageTag: b0e48156-53fb-4dd8-b3fd-60a44c70ef1f
+		sourceLineageTag: activity_id
+		summarizeBy: none
+		sourceColumn: activity_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column ActivityType
+		dataType: string
+		lineageTag: fcc105df-beb7-4e20-9e2b-61517a3ead8c
+		sourceLineageTag: activity_type
+		summarizeBy: none
+		sourceColumn: activity_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column ClientActivityId
+		dataType: string
+		lineageTag: ae2606b6-1f21-40ab-9182-da57c9e5e092
+		sourceLineageTag: client_activity_id
+		summarizeBy: none
+		sourceColumn: client_activity_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrentGatewayClientPipelineId
+		dataType: string
+		lineageTag: d703a664-b06a-48a2-9853-2946c972683e
+		sourceLineageTag: current_gateway_client_pipeline_id
+		summarizeBy: none
+		sourceColumn: current_gateway_client_pipeline_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 8d395a3a-a4dc-4210-95ab-f644aeec2415
+		sourceLineageTag: date
+		summarizeBy: none
+		sourceColumn: date
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column DateTime
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 580d2060-1e10-4ff4-b47e-d25825b0a6c6
+		sourceLineageTag: date_time
+		summarizeBy: none
+		sourceColumn: date_time
+
+		annotation SummarizationSetBy = Automatic
+
+	column EventText
+		dataType: string
+		lineageTag: 3bebe790-b600-4e04-9716-accec3395b2b
+		sourceLineageTag: event_text
+		summarizeBy: none
+		sourceColumn: event_text
+
+		annotation SummarizationSetBy = Automatic
+
+	column EventType
+		dataType: string
+		lineageTag: a67388a9-7f66-4c34-9c4d-225afac9f797
+		sourceLineageTag: event_type
+		summarizeBy: none
+		sourceColumn: event_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column GatewayId
+		dataType: string
+		lineageTag: e94585da-3f10-4a3a-8675-a478e3540ae1
+		sourceLineageTag: gateway_id
+		summarizeBy: none
+		sourceColumn: gateway_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column Hash
+		dataType: string
+		lineageTag: 4b8983a4-7cc4-4c18-9feb-70e885f619ce
+		sourceLineageTag: hash
+		summarizeBy: none
+		sourceColumn: hash
+
+		annotation SummarizationSetBy = Automatic
+
+	column Hour
+		dataType: dateTime
+		formatString: Long Time
+		lineageTag: 5b653cbd-f027-482a-bfd3-5ec32913c8a8
+		sourceLineageTag: hour
+		summarizeBy: none
+		sourceColumn: hour
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Time
+
+	column Instance
+		dataType: string
+		lineageTag: 6eda6a12-a9c1-447c-bcbb-ea5a7dc2162e
+		sourceLineageTag: instance
+		summarizeBy: none
+		sourceColumn: instance
+
+		annotation SummarizationSetBy = Automatic
+
+	column Level
+		dataType: string
+		lineageTag: 8a789f0b-cc6c-41e4-b93b-acc8f0f9e4d2
+		sourceLineageTag: level
+		summarizeBy: none
+		sourceColumn: level
+
+		annotation SummarizationSetBy = Automatic
+
+	column LogFileName
+		dataType: string
+		lineageTag: 6a602719-d76a-4b5f-b8dc-df4f9a0b8a28
+		sourceLineageTag: log_file_name
+		summarizeBy: none
+		sourceColumn: log_file_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column RootActivityId
+		dataType: string
+		lineageTag: 7140d9d3-d47f-430d-9404-8c405fc2e8e8
+		sourceLineageTag: root_activity_id
+		summarizeBy: none
+		sourceColumn: root_activity_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column RootGatewayClientPipelineId
+		dataType: string
+		lineageTag: 5d52bf52-bfa0-48a1-b6c7-16118e3b2036
+		sourceLineageTag: root_gateway_client_pipeline_id
+		summarizeBy: none
+		sourceColumn: root_gateway_client_pipeline_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column TimeId
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 42731dc1-5c5f-4e0b-9f39-f4b9dcd89384
+		sourceLineageTag: time_id
+		summarizeBy: none
+		sourceColumn: time_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	/// gateway-info, gateway-errors, gateway-network
+	column 'Log Type'
+		dataType: string
+		lineageTag: e49429a0-245f-545b-916c-2c768c99ac99
+		sourceLineageTag: log_type
+		summarizeBy: none
+		sourceColumn: log_type
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Logs = entity
+		mode: directLake
+		source
+			entityName: logs
+			schemaName: gold
+			expressionSource: 'DirectLake - Gateway Monitor'
+

@@ -1,0 +1,43 @@
+/// Data sources of each query.
+table 'Queries - Datasources'
+	lineageTag: 1e8d09e8-bbde-41c9-a427-e13f7809ece8
+	sourceLineageTag: [gold].[query_datasources]
+
+	measure '# Query Datasources' = COUNTROWS('Queries - Datasources')
+		formatString: 0
+		lineageTag: 5d8cc693-f574-442d-8eac-6247394d579f
+
+	column 'DataSource - Kind'
+		dataType: string
+		lineageTag: 1521ac9c-7f7f-49ea-8847-61e99ec9e2d6
+		sourceLineageTag: datasource_kind
+		summarizeBy: none
+		sourceColumn: datasource_kind
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DataSource - Path'
+		dataType: string
+		lineageTag: a798777f-f866-45ae-a082-1940130988cc
+		sourceLineageTag: datasource_path
+		summarizeBy: none
+		sourceColumn: datasource_path
+
+		annotation SummarizationSetBy = Automatic
+
+	column QueryTrackingId
+		dataType: string
+		lineageTag: e385eefb-93d0-451d-8d2d-aa586606c998
+		sourceLineageTag: query_tracking_id
+		summarizeBy: none
+		sourceColumn: query_tracking_id
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Queries - Datasources' = entity
+		mode: directLake
+		source
+			entityName: query_datasources
+			schemaName: gold
+			expressionSource: 'DirectLake - Gateway Monitor'
+

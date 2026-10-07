@@ -1,0 +1,175 @@
+/// Gateway performance counters (5-minute aggregation windows by default).
+table 'System Counters'
+	lineageTag: 403f3e8a-6cb1-4df6-9f32-56afefb778e2
+	sourceLineageTag: [gold].[system_counters]
+
+	measure 'Avg. Counter Value' = ```
+			
+			var selectedCounter = LOWER(SELECTEDVALUE('System Counters'[CounterName]))
+			var counterValue =  AVERAGE('System Counters'[Average])
+			return SWITCH(selectedCounter
+			, "gatewaycpupercent", 
+			// https://medium.com/microsoftazure/on-premises-data-gateway-monitoring-series-part-2-cpu-counters-99631a0a5b17
+			var numCores = MAX(MAX('Gateways'[NumberOfCores]),1)
+			return DIVIDE(counterValue, numCores)
+			, counterValue)
+			```
+		lineageTag: bd2deea5-72ee-475f-8d53-248de05ef366
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Max Counter Value' = ```
+			
+			var selectedCounter = LOWER(SELECTEDVALUE('System Counters'[CounterName]))
+			var counterValue =  MAX('System Counters'[Max])
+			return SWITCH(selectedCounter
+			, "gatewaycpupercent", 
+			// https://medium.com/microsoftazure/on-premises-data-gateway-monitoring-series-part-2-cpu-counters-99631a0a5b17
+			var numCores = MAX(MAX('Gateways'[NumberOfCores]),1)
+			return DIVIDE(counterValue, numCores)
+			, counterValue)
+			```
+		lineageTag: 2ee91d07-a4a1-42d6-b5f5-12e7cf878507
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Min Counter Value' = ```
+			
+			var selectedCounter = LOWER(SELECTEDVALUE('System Counters'[CounterName]))
+			var counterValue =  MIN('System Counters'[Min])
+			return SWITCH(selectedCounter
+			, "gatewaycpupercent", 
+			// https://medium.com/microsoftazure/on-premises-data-gateway-monitoring-series-part-2-cpu-counters-99631a0a5b17
+			var numCores = MAX(MAX('Gateways'[NumberOfCores]),1)
+			return DIVIDE(counterValue, numCores)
+			, counterValue)
+			```
+		lineageTag: 9cd9e57d-2d52-435a-beb1-217adb768069
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column AggregationEndTimeUTC
+		dataType: dateTime
+		formatString: yyyy-mm-dd hh:nn
+		lineageTag: e12ca0b0-8813-4cd2-a281-c84be2f83901
+		sourceLineageTag: aggregation_end_time_utc
+		summarizeBy: none
+		sourceColumn: aggregation_end_time_utc
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column AggregationStartTimeUTC
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: c323b295-abb9-40ca-9e70-99092e6393c3
+		sourceLineageTag: aggregation_start_time_utc
+		summarizeBy: none
+		sourceColumn: aggregation_start_time_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	column Average
+		dataType: double
+		isHidden
+		lineageTag: 3158e6fc-8739-4930-865a-c93ba8c3606c
+		sourceLineageTag: average_value
+		summarizeBy: sum
+		sourceColumn: average_value
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column CounterName
+		dataType: string
+		lineageTag: 9e5804ad-b175-4af6-88cd-cf129979d93b
+		sourceLineageTag: counter_name
+		summarizeBy: none
+		sourceColumn: counter_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 69d5e131-2bf6-41ba-98c5-748dc348b388
+		sourceLineageTag: date
+		summarizeBy: none
+		sourceColumn: date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Filename
+		dataType: string
+		lineageTag: 497e286a-7015-4a3f-827a-06c97a4c89fd
+		sourceLineageTag: file_name
+		summarizeBy: none
+		sourceColumn: file_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column GatewayId
+		dataType: string
+		lineageTag: 6e11d96a-55f8-4c6f-8ed8-0d229c149e2d
+		sourceLineageTag: gateway_id
+		summarizeBy: none
+		sourceColumn: gateway_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column Max
+		dataType: double
+		isHidden
+		lineageTag: 9db8262e-f651-4ad3-aef4-0ebb61afa4b9
+		sourceLineageTag: max_value
+		summarizeBy: sum
+		sourceColumn: max_value
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Min
+		dataType: double
+		isHidden
+		lineageTag: 7a9dc12a-e8b5-4bc5-aa48-b40ec980fbf8
+		sourceLineageTag: min_value
+		summarizeBy: sum
+		sourceColumn: min_value
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column TmeId
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: dc112cc7-e5f5-4b7f-b73c-d302270b495c
+		sourceLineageTag: tme_id
+		summarizeBy: none
+		sourceColumn: tme_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'System Counters' = entity
+		mode: directLake
+		source
+			entityName: system_counters
+			schemaName: gold
+			expressionSource: 'DirectLake - Gateway Monitor'
+

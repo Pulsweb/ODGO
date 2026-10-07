@@ -1,0 +1,102 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json",
+  "name": "ReportSection5dd91c6beea80ba97b62",
+  "displayName": "Query Detail",
+  "displayOption": "FitToPage",
+  "height": 720.0,
+  "width": 1280.0,
+  "pageBinding": {
+    "name": "Pod1",
+    "type": "Drillthrough",
+    "parameters": [
+      {
+        "name": "Param_Filter7dca2d4af958537f9f53",
+        "boundFilter": "Filter7dca2d4af958537f9f53",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Queries"
+              }
+            },
+            "Property": "QueryTrackingId"
+          }
+        }
+      }
+    ]
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filter0cf55b3e835607e80799",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Logs"
+              }
+            },
+            "Property": "RootActivityId"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filter7dca2d4af958537f9f53",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Queries"
+              }
+            },
+            "Property": "QueryTrackingId"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      }
+    ]
+  },
+  "objects": {
+    "outspacePane": [
+      {
+        "properties": {
+          "width": {
+            "expr": {
+              "Literal": {
+                "Value": "204L"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "background": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'#F2F2F2'"
+                  }
+                }
+              }
+            }
+          },
+          "transparency": {
+            "expr": {
+              "Literal": {
+                "Value": "0D"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "visibility": "HiddenInViewMode"
+}

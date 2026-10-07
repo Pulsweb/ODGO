@@ -1,0 +1,75 @@
+name: Bug report
+description: Something doesn't work as documented (agent, setup notebook, processing, model or report).
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a problem.
+
+        **Don't paste sensitive information.** Remove tenant, workspace, item and object IDs, server and domain names,
+        tokens, client secrets and real gateway log content before posting. Gateway logs can contain query text, data
+        source details and account names.
+
+        Don't report security vulnerabilities here: use **Report a vulnerability** in the repository's **Security** tab.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Collection agent or installer (gateway server)
+        - Setup notebook
+        - Fabric processing (nb_gwmon_ingest, nb_gwmon_maintenance)
+        - Semantic model
+        - Report
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Run ...
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Error messages or logs (sanitized)
+      description: Agent log lines (`agent-yyyyMMdd.jsonl`), `-Test` output, notebook output, or script errors with the identifiers removed.
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: ODGO version or commit
+      placeholder: e.g. 1.0.0 or a commit hash
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Gateway version and mode, Windows version, PowerShell version, Fabric capacity SKU, authentication mode.
+      placeholder: |
+        Gateway: 3000.xxx (standard mode)
+        Windows Server 2022, PowerShell 7.4
+        Fabric capacity F<size>, authentication ClientSecret
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I removed secrets, identifiers and real gateway log content from this report.
+          required: true
+        - label: The problem concerns an on-premises data gateway in standard mode (VNet data gateways aren't in scope).
+          required: true

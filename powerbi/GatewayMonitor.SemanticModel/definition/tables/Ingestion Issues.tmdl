@@ -1,0 +1,160 @@
+/// Quarantined files, rejected records, missing segments, failures and schema drift (new).
+table 'Ingestion Issues'
+	lineageTag: d2d848c9-6d94-56bc-b834-dc9ea40f928c
+	sourceLineageTag: [gold].[ingestion_issues]
+
+	/// Ingestion issues (quarantine, rejected records, missing segments, failures, schema drift).
+	measure '# Issues' = COUNTROWS('Ingestion Issues')
+		formatString: #,0
+		displayFolder: Ingestion Health
+		lineageTag: a59364da-c408-5422-903f-a8431cf0a832
+
+	/// Files moved to processing/quarantine (invalid manifest, checksum mismatch, binary content...).
+	measure '# Quarantined Files' = COALESCE(CALCULATE(COUNTROWS('Ingestion Issues'), 'Ingestion Issues'[Issue Type] = "Quarantined File"), 0)
+		formatString: #,0
+		displayFolder: Ingestion Health
+		lineageTag: e7529d1f-c2b9-5577-a570-970324f06ee8
+
+	/// Records that could not be parsed or typed (kept in ops.rejected_records).
+	measure '# Rejected Records' = COALESCE(CALCULATE(SUM('Ingestion Issues'[Occurrences]), 'Ingestion Issues'[Issue Type] = "Rejected Record"), 0)
+		formatString: #,0
+		displayFolder: Ingestion Health
+		lineageTag: 9c510aa6-90dc-588c-8e0f-4d07cfcead1a
+
+	/// Segments listed in a manifest whose raw file was not found.
+	measure '# Missing Segments' = COALESCE(CALCULATE(COUNTROWS('Ingestion Issues'), 'Ingestion Issues'[Issue Type] = "Missing Segment"), 0)
+		formatString: #,0
+		displayFolder: Ingestion Health
+		lineageTag: 27b74d5d-8bd1-5a15-ae7e-3395417c660d
+
+	column 'Issue Id'
+		dataType: string
+		lineageTag: f6ac8f04-d881-52d9-8f8c-c16088fbb920
+		sourceLineageTag: issue_id
+		summarizeBy: none
+		sourceColumn: issue_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Issue Type'
+		dataType: string
+		lineageTag: 47fb2090-dc2b-59b2-8e28-f105d98b297f
+		sourceLineageTag: issue_type
+		summarizeBy: none
+		sourceColumn: issue_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column Severity
+		dataType: string
+		lineageTag: 103d5f4e-8f73-52e1-8e10-cb73ec201a6e
+		sourceLineageTag: severity
+		summarizeBy: none
+		sourceColumn: severity
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Detected (UTC)'
+		dataType: dateTime
+		formatString: yyyy-mm-dd hh:nn:ss
+		lineageTag: c7a30bae-27c3-5047-baac-f969f4f2da2e
+		sourceLineageTag: detected_utc
+		summarizeBy: none
+		sourceColumn: detected_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Detected Date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 5c2c2835-3c5d-5a0a-835b-f798d070f41b
+		sourceLineageTag: detected_date
+		summarizeBy: none
+		sourceColumn: detected_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column ServerId
+		dataType: string
+		isHidden
+		lineageTag: 42dd7f71-0df5-55a7-a313-e84ee6702bb6
+		sourceLineageTag: server_id
+		summarizeBy: none
+		sourceColumn: server_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column GatewayId
+		dataType: string
+		isHidden
+		lineageTag: 035c57db-504e-5962-a726-3b8e41afbd7b
+		sourceLineageTag: gateway_id
+		summarizeBy: none
+		sourceColumn: gateway_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Log Type'
+		dataType: string
+		lineageTag: 0eb72d17-baa6-5239-ab3f-8a3985fcae79
+		sourceLineageTag: log_type
+		summarizeBy: none
+		sourceColumn: log_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column Object
+		dataType: string
+		lineageTag: a97c8fca-33d5-5cf1-a3db-f6ba7a9509bb
+		sourceLineageTag: object_path
+		summarizeBy: none
+		sourceColumn: object_path
+
+		annotation SummarizationSetBy = Automatic
+
+	column Reason
+		dataType: string
+		lineageTag: b7d1b9d1-9422-537f-924a-1f6aa3850d03
+		sourceLineageTag: reason
+		summarizeBy: none
+		sourceColumn: reason
+
+		annotation SummarizationSetBy = Automatic
+
+	column Details
+		dataType: string
+		lineageTag: 5a9eaaad-86ce-5048-acc9-9ee8d3b19eda
+		sourceLineageTag: details
+		summarizeBy: none
+		sourceColumn: details
+
+		annotation SummarizationSetBy = Automatic
+
+	column Occurrences
+		dataType: int64
+		formatString: #,0
+		lineageTag: fd17033d-9eae-5b34-8f57-b6938ba4734b
+		sourceLineageTag: occurrences
+		summarizeBy: sum
+		sourceColumn: occurrences
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Batch Id'
+		dataType: string
+		lineageTag: 412c23de-d209-538c-b68a-c183d062bba7
+		sourceLineageTag: batch_id
+		summarizeBy: none
+		sourceColumn: batch_id
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Ingestion Issues' = entity
+		mode: directLake
+		source
+			entityName: ingestion_issues
+			schemaName: gold
+			expressionSource: 'DirectLake - Gateway Monitor'
+

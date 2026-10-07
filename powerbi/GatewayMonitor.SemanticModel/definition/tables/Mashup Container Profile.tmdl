@@ -1,0 +1,150 @@
+/// Latest mashup container profile per gateway and pool type.
+table 'Mashup Container Profile'
+	lineageTag: b8d66206-eacf-4afa-b014-e93f5a2534fc
+	sourceLineageTag: [gold].[mashup_container_profile]
+
+	column CacheTimeToLiveInMinute
+		dataType: int64
+		formatString: 0
+		lineageTag: 1c213b4f-f187-4391-9ad8-2e4e71732de0
+		sourceLineageTag: cache_time_to_live_in_minute
+		summarizeBy: sum
+		sourceColumn: cache_time_to_live_in_minute
+
+		annotation SummarizationSetBy = Automatic
+
+	column ContainerMaxCommitInMB
+		dataType: int64
+		formatString: 0
+		lineageTag: 960a519e-f2b8-41ca-84d8-30e597bd6b03
+		sourceLineageTag: container_max_commit_in_mb
+		summarizeBy: sum
+		sourceColumn: container_max_commit_in_mb
+
+		annotation SummarizationSetBy = Automatic
+
+	column ContainerMaxCount
+		dataType: int64
+		formatString: 0
+		lineageTag: 11f890d9-1748-4ea7-b89e-2dff29c8fb39
+		sourceLineageTag: container_max_count
+		summarizeBy: sum
+		sourceColumn: container_max_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column ContainerMaxWorkingSetInMB
+		dataType: int64
+		formatString: 0
+		lineageTag: faa64b2b-ba0a-48e8-970e-defbd28e7c1d
+		sourceLineageTag: container_max_working_set_in_mb
+		summarizeBy: sum
+		sourceColumn: container_max_working_set_in_mb
+
+		annotation SummarizationSetBy = Automatic
+
+	column ContainerTimeToLiveInMinute
+		dataType: int64
+		formatString: 0
+		lineageTag: fb2b2484-1a47-4818-8056-32ebc18cd5d2
+		sourceLineageTag: container_time_to_live_in_minute
+		summarizeBy: sum
+		sourceColumn: container_time_to_live_in_minute
+
+		annotation SummarizationSetBy = Automatic
+
+	column DataCacheMaxSizeInMB
+		dataType: int64
+		formatString: 0
+		lineageTag: cd0cfb16-e760-451e-8702-0c60f9bb3b35
+		sourceLineageTag: data_cache_max_size_in_mb
+		summarizeBy: sum
+		sourceColumn: data_cache_max_size_in_mb
+
+		annotation SummarizationSetBy = Automatic
+
+	column DataCacheTimeToLiveInMinute
+		dataType: int64
+		formatString: 0
+		lineageTag: 62f93b78-6f42-4789-aed2-4c3e03e79d60
+		sourceLineageTag: data_cache_time_to_live_in_minute
+		summarizeBy: sum
+		sourceColumn: data_cache_time_to_live_in_minute
+
+		annotation SummarizationSetBy = Automatic
+
+	column EnableCaching
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: acd957d1-ab19-445d-bb64-424227ee293b
+		sourceLineageTag: enable_caching
+		summarizeBy: none
+		sourceColumn: enable_caching
+
+		annotation SummarizationSetBy = Automatic
+
+	column GatewayId
+		dataType: string
+		lineageTag: e4da966b-f918-40c2-bccb-bf25d9d2f5cb
+		sourceLineageTag: gateway_id
+		summarizeBy: none
+		sourceColumn: gateway_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column MashupContainerPoolType
+		dataType: string
+		lineageTag: 948f11c5-9921-413a-9587-034624648b6c
+		sourceLineageTag: mashup_container_pool_type
+		summarizeBy: none
+		sourceColumn: mashup_container_pool_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column MashupContainerPoolTypeId
+		dataType: int64
+		formatString: 0
+		lineageTag: 9d4a96aa-1849-48e8-991d-79d29e0d918f
+		sourceLineageTag: mashup_container_pool_type_id
+		summarizeBy: count
+		sourceColumn: mashup_container_pool_type_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column MetadataCacheMaxSizeInMB
+		dataType: int64
+		formatString: 0
+		lineageTag: 5a8ea1f2-c6f1-4513-ac07-7fbae877eab2
+		sourceLineageTag: metadata_cache_max_size_in_mb
+		summarizeBy: sum
+		sourceColumn: metadata_cache_max_size_in_mb
+
+		annotation SummarizationSetBy = Automatic
+
+	column MetadataCacheTimeToLiveInMinute
+		dataType: int64
+		formatString: 0
+		lineageTag: 984ecaea-aa1b-4493-827d-6f5ffaac638f
+		sourceLineageTag: metadata_cache_time_to_live_in_minute
+		summarizeBy: sum
+		sourceColumn: metadata_cache_time_to_live_in_minute
+
+		annotation SummarizationSetBy = Automatic
+
+	column SessionTimeToLiveInMinute
+		dataType: int64
+		formatString: 0
+		lineageTag: c3a63f5d-9d09-4fea-ba76-40726bc82d17
+		sourceLineageTag: session_time_to_live_in_minute
+		summarizeBy: sum
+		sourceColumn: session_time_to_live_in_minute
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Mashup Container Profile' = entity
+		mode: directLake
+		source
+			entityName: mashup_container_profile
+			schemaName: gold
+			expressionSource: 'DirectLake - Gateway Monitor'
+

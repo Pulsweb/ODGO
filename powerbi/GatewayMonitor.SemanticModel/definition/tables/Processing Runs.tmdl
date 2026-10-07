@@ -1,0 +1,156 @@
+/// Notebook runs (new ingestion metric).
+table 'Processing Runs'
+	lineageTag: 2c461513-90a1-5bb5-893e-73f52d4b7924
+	sourceLineageTag: [gold].[ingestion_processing_runs]
+
+	/// Notebook runs (Bronze, Silver, Gold, maintenance, validation).
+	measure '# Processing Runs' = COUNTROWS('Processing Runs')
+		formatString: #,0
+		displayFolder: Ingestion Health
+		lineageTag: 9b132910-67dd-515b-98e8-d3f175840209
+
+	/// Notebook runs that failed.
+	measure '# Failed Processing Runs' = COALESCE(CALCULATE(COUNTROWS('Processing Runs'), 'Processing Runs'[Status] = "Failed"), 0)
+		formatString: #,0
+		displayFolder: Ingestion Health
+		lineageTag: ee90fe71-66bf-5e3a-9452-513f1fa10913
+
+	/// End of the most recent successful notebook run.
+	measure 'Last Successful Processing (UTC)' = CALCULATE(MAX('Processing Runs'[Ended (UTC)]), 'Processing Runs'[Status] = "Succeeded")
+		formatString: yyyy-mm-dd hh:nn
+		displayFolder: Ingestion Health
+		lineageTag: fffaab57-3773-5b71-a379-0ebe4671c82f
+
+	column 'Run Id'
+		dataType: string
+		lineageTag: 88258400-03a2-5fd7-abaa-cc684bf28a2c
+		sourceLineageTag: run_id
+		summarizeBy: none
+		sourceColumn: run_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column Stage
+		dataType: string
+		lineageTag: b4daf52e-14a4-58cf-af5c-2d91983101c2
+		sourceLineageTag: stage
+		summarizeBy: none
+		sourceColumn: stage
+
+		annotation SummarizationSetBy = Automatic
+
+	column Notebook
+		dataType: string
+		lineageTag: f57c3613-dfe6-5a15-81f2-42db6eb5b7ac
+		sourceLineageTag: notebook
+		summarizeBy: none
+		sourceColumn: notebook
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Started (UTC)'
+		dataType: dateTime
+		formatString: yyyy-mm-dd hh:nn:ss
+		lineageTag: 73622320-9da9-5b4c-a394-ac9b7183fa35
+		sourceLineageTag: started_utc
+		summarizeBy: none
+		sourceColumn: started_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ended (UTC)'
+		dataType: dateTime
+		formatString: yyyy-mm-dd hh:nn:ss
+		lineageTag: 7e0879ce-ce76-5fcc-bc08-cc5b20ff6876
+		sourceLineageTag: ended_utc
+		summarizeBy: none
+		sourceColumn: ended_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Run Date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 8405feb9-071f-581f-8fdc-3e5452f596ac
+		sourceLineageTag: run_date
+		summarizeBy: none
+		sourceColumn: run_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Duration (s)'
+		dataType: double
+		formatString: #,0.0
+		lineageTag: babd58ce-01a5-56ce-807c-a8dda4de0aca
+		sourceLineageTag: duration_seconds
+		summarizeBy: average
+		sourceColumn: duration_seconds
+
+		annotation SummarizationSetBy = Automatic
+
+	column Status
+		dataType: string
+		lineageTag: a993c60d-146e-5190-bdc4-73ef7f918dda
+		sourceLineageTag: status
+		summarizeBy: none
+		sourceColumn: status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Rows Read'
+		dataType: int64
+		formatString: #,0
+		lineageTag: d3fd5f85-804c-5f78-9e12-36f40c5c0e5f
+		sourceLineageTag: rows_read
+		summarizeBy: sum
+		sourceColumn: rows_read
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Rows Written'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 94c6cccc-a09a-56bb-baec-dcc1c1677f98
+		sourceLineageTag: rows_written
+		summarizeBy: sum
+		sourceColumn: rows_written
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Rows Rejected'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 5aa650a6-2f8f-5027-83e2-b42f27631de5
+		sourceLineageTag: rows_rejected
+		summarizeBy: sum
+		sourceColumn: rows_rejected
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Batch Id'
+		dataType: string
+		lineageTag: 157a9d75-9c55-5ab5-ab34-573882f4a721
+		sourceLineageTag: batch_id
+		summarizeBy: none
+		sourceColumn: batch_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column Error
+		dataType: string
+		lineageTag: a9f58703-5853-5006-aeaf-87916fddfa3b
+		sourceLineageTag: error_message
+		summarizeBy: none
+		sourceColumn: error_message
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Processing Runs' = entity
+		mode: directLake
+		source
+			entityName: ingestion_processing_runs
+			schemaName: gold
+			expressionSource: 'DirectLake - Gateway Monitor'
+

@@ -1,0 +1,311 @@
+/// Collection agents / servers with their latest status (new ingestion metric).
+table Servers
+	lineageTag: 7f90227b-41ee-5217-8b6f-b9d2afc55161
+	sourceLineageTag: [gold].[ingestion_servers]
+
+	/// Servers (collection agents) that reported at least one run.
+	measure '# Servers' = COUNTROWS('Servers')
+		formatString: #,0
+		displayFolder: Ingestion Health
+		lineageTag: 80c9b4d5-1395-5f09-b90d-163a1e7e7523
+
+	/// Minutes since the most recent agent run (heartbeat) in the current filter context.
+	measure 'Minutes Since Last Heartbeat' =
+			VAR lastRun = MAX('Servers'[Last Agent Run (UTC)])
+			RETURN IF(NOT ISBLANK(lastRun), DATEDIFF(lastRun, UTCNOW(), MINUTE))
+		formatString: #,0
+		displayFolder: Ingestion Health
+		lineageTag: 58eedc2a-3ce9-5a7a-a792-33fc3b8e1a3a
+
+	/// Minutes since the most recent uploaded segment in the current filter context.
+	measure 'Minutes Since Last Upload' =
+			VAR lastUpload = MAX('Servers'[Last Upload (UTC)])
+			RETURN IF(NOT ISBLANK(lastUpload), DATEDIFF(lastUpload, UTCNOW(), MINUTE))
+		formatString: #,0
+		displayFolder: Ingestion Health
+		lineageTag: 5172a949-8c7b-55f2-825b-16a7fab87079
+
+	/// OK, Late, Missing (no heartbeat within Late After / Missing After minutes) or Failing (last run failed). One server only.
+	measure 'Upload Status' =
+			IF(
+			    HASONEVALUE('Servers'[ServerId]),
+			    VAR minutes = [Minutes Since Last Heartbeat]
+			    VAR lateAfter = MAX('Servers'[Late After (min)])
+			    VAR missingAfter = MAX('Servers'[Missing After (min)])
+			    VAR lastStatus = MAX('Servers'[Last Run Status])
+			    RETURN
+			        SWITCH(
+			            TRUE(),
+			            ISBLANK(minutes) || minutes > missingAfter, "Missing",
+			            minutes > lateAfter, "Late",
+			            lastStatus = "Failed", "Failing",
+			            "OK"
+			        )
+			)
+		displayFolder: Ingestion Health
+		lineageTag: 6cb76f0e-d8cf-52ae-933a-d400d5f43068
+
+	/// Hex color of Upload Status (conditional formatting).
+	measure 'Upload Status Color' = SWITCH([Upload Status], "OK", "#107C10", "Late", "#C19C00", "Failing", "#D13438", "Missing", "#D13438")
+		displayFolder: Ingestion Health
+		lineageTag: b61d4ff2-1331-51da-8734-a12ee219060e
+
+	/// Servers without a heartbeat for more than Missing After minutes.
+	measure '# Servers (Missing Uploads)' = COALESCE(COUNTROWS(FILTER(VALUES('Servers'[ServerId]), [Upload Status] = "Missing")), 0)
+		formatString: #,0
+		displayFolder: Ingestion Health
+		lineageTag: afccd563-7d59-52f0-af19-ac5786690403
+
+	/// Servers whose last heartbeat is older than Late After minutes.
+	measure '# Servers (Late)' = COALESCE(COUNTROWS(FILTER(VALUES('Servers'[ServerId]), [Upload Status] = "Late")), 0)
+		formatString: #,0
+		displayFolder: Ingestion Health
+		lineageTag: f9a2ac11-db40-5ea1-8a99-9fb9bfff0704
+
+	/// Servers whose last agent run failed.
+	measure '# Servers (Failing)' = COALESCE(COUNTROWS(FILTER(VALUES('Servers'[ServerId]), [Upload Status] = "Failing")), 0)
+		formatString: #,0
+		displayFolder: Ingestion Health
+		lineageTag: 8b442423-e260-5fa5-a115-10b2b4724e38
+
+	/// Most recent segment upload.
+	measure 'Latest Upload (UTC)' = MAX('Servers'[Last Upload (UTC)])
+		formatString: yyyy-mm-dd hh:nn
+		displayFolder: Ingestion Health
+		lineageTag: b48a1827-c6f1-50c3-bb9b-af952397f5d9
+
+	/// Most recent processing of an uploaded segment.
+	measure 'Latest Processing (UTC)' = MAX('Servers'[Last Processed (UTC)])
+		formatString: yyyy-mm-dd hh:nn
+		displayFolder: Ingestion Health
+		lineageTag: 7c0545c3-1b3f-5104-96e7-36b3ef57146e
+
+	/// Source file of the most recently processed segment.
+	measure 'Latest Processed File' =
+			MAXX(
+			    TOPN(1, FILTER('Servers', NOT ISBLANK('Servers'[Last Processed (UTC)])), 'Servers'[Last Processed (UTC)], DESC),
+			    'Servers'[Last Processed File]
+			)
+		displayFolder: Ingestion Health
+		lineageTag: 2a6fe96d-0de6-5163-87ac-14815a07605b
+
+	/// Distinct collection agent versions in use.
+	measure '# Agent Versions' = DISTINCTCOUNTNOBLANK('Servers'[Agent Version])
+		formatString: #,0
+		displayFolder: Ingestion Health
+		lineageTag: 474ba474-5847-506e-aeb6-511873263a89
+
+	column ServerId
+		dataType: string
+		lineageTag: f5530752-c87c-537b-817e-3fa9811da79d
+		sourceLineageTag: server_id
+		summarizeBy: none
+		sourceColumn: server_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column Server
+		dataType: string
+		lineageTag: d85d6a76-6e61-5c92-afb6-0c3273da0281
+		sourceLineageTag: server_name
+		summarizeBy: none
+		sourceColumn: server_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Server FQDN'
+		dataType: string
+		lineageTag: 432ba021-4f80-5a5b-97ba-377c53f9d68e
+		sourceLineageTag: server_fqdn
+		summarizeBy: none
+		sourceColumn: server_fqdn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Environment
+		dataType: string
+		lineageTag: a6572f05-15a6-5717-a167-e5f745e29b39
+		sourceLineageTag: environment
+		summarizeBy: none
+		sourceColumn: environment
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Cluster Id'
+		dataType: string
+		lineageTag: e67b09f3-6b87-5489-b9db-0e9ea65a4bdf
+		sourceLineageTag: cluster_id
+		summarizeBy: none
+		sourceColumn: cluster_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column Cluster
+		dataType: string
+		lineageTag: a99a3192-be4a-5406-be78-1a1b56e10087
+		sourceLineageTag: cluster_name
+		summarizeBy: none
+		sourceColumn: cluster_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Gateway Id'
+		dataType: string
+		lineageTag: bd5b5bc4-4267-5712-8d53-812c1a39e315
+		sourceLineageTag: gateway_id
+		summarizeBy: none
+		sourceColumn: gateway_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column Gateway
+		dataType: string
+		lineageTag: 200cf741-c94b-5704-af29-ad6812b54754
+		sourceLineageTag: gateway_name
+		summarizeBy: none
+		sourceColumn: gateway_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Agent Instance Id'
+		dataType: string
+		lineageTag: 90f10958-78b8-5aa3-9f5d-285a6b18d370
+		sourceLineageTag: agent_instance_id
+		summarizeBy: none
+		sourceColumn: agent_instance_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Agent Version'
+		dataType: string
+		lineageTag: 885eeb41-0197-55dc-87f3-27ad4546f9a0
+		sourceLineageTag: agent_version
+		summarizeBy: none
+		sourceColumn: agent_version
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Time Zone'
+		dataType: string
+		lineageTag: 573c7083-5be3-5624-8d2f-c704ea64796a
+		sourceLineageTag: time_zone_id
+		summarizeBy: none
+		sourceColumn: time_zone_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'UTC Offset (min)'
+		dataType: int64
+		formatString: 0
+		lineageTag: 7a805e05-7c5d-5690-b4c1-cb54b5fcbd78
+		sourceLineageTag: utc_offset_minutes
+		summarizeBy: none
+		sourceColumn: utc_offset_minutes
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'First Seen (UTC)'
+		dataType: dateTime
+		formatString: yyyy-mm-dd hh:nn:ss
+		lineageTag: 6494ffbb-d99e-5857-80e8-8f556737b989
+		sourceLineageTag: first_seen_utc
+		summarizeBy: none
+		sourceColumn: first_seen_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Last Agent Run (UTC)'
+		dataType: dateTime
+		formatString: yyyy-mm-dd hh:nn:ss
+		lineageTag: b5246425-f3e1-52a5-9256-43817b023f28
+		sourceLineageTag: last_run_utc
+		summarizeBy: none
+		sourceColumn: last_run_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Last Run Status'
+		dataType: string
+		lineageTag: e980a3c2-5d13-5748-a7b2-4ef53f80f41a
+		sourceLineageTag: last_run_status
+		summarizeBy: none
+		sourceColumn: last_run_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Last Successful Run (UTC)'
+		dataType: dateTime
+		formatString: yyyy-mm-dd hh:nn:ss
+		lineageTag: 6215dd83-fb57-5683-953d-c8422fd56097
+		sourceLineageTag: last_successful_run_utc
+		summarizeBy: none
+		sourceColumn: last_successful_run_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Last Upload (UTC)'
+		dataType: dateTime
+		formatString: yyyy-mm-dd hh:nn:ss
+		lineageTag: 4091c711-75b6-5452-a364-5d7dee8eb060
+		sourceLineageTag: last_upload_utc
+		summarizeBy: none
+		sourceColumn: last_upload_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Last Processed (UTC)'
+		dataType: dateTime
+		formatString: yyyy-mm-dd hh:nn:ss
+		lineageTag: d31237c5-8a52-5047-b3e6-900c5473dbed
+		sourceLineageTag: last_processed_utc
+		summarizeBy: none
+		sourceColumn: last_processed_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Last Processed File'
+		dataType: string
+		lineageTag: 5dc59fdd-b2ed-5a59-bb7d-c9e9112676ee
+		sourceLineageTag: last_processed_file
+		summarizeBy: none
+		sourceColumn: last_processed_file
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Expected Interval (min)'
+		dataType: int64
+		formatString: 0
+		lineageTag: 815e990f-f487-569f-a5f8-5a6bc4f27f58
+		sourceLineageTag: expected_interval_minutes
+		summarizeBy: none
+		sourceColumn: expected_interval_minutes
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Late After (min)'
+		dataType: int64
+		formatString: 0
+		lineageTag: b5fde68e-0f24-5680-96a0-c169709acc7f
+		sourceLineageTag: late_after_minutes
+		summarizeBy: none
+		sourceColumn: late_after_minutes
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Missing After (min)'
+		dataType: int64
+		formatString: 0
+		lineageTag: 530e9b39-9ba8-5c23-8aff-838d7a0d7dd3
+		sourceLineageTag: missing_after_minutes
+		summarizeBy: none
+		sourceColumn: missing_after_minutes
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Servers = entity
+		mode: directLake
+		source
+			entityName: ingestion_servers
+			schemaName: gold
+			expressionSource: 'DirectLake - Gateway Monitor'
+

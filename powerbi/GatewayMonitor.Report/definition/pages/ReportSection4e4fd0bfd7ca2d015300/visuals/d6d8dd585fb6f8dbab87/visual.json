@@ -1,0 +1,833 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.2.0/schema.json",
+  "name": "d6d8dd585fb6f8dbab87",
+  "position": {
+    "x": 33.61,
+    "y": 463.71,
+    "z": 1010.0,
+    "height": 240.09,
+    "width": 662.64,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mashup Logs"
+                    }
+                  },
+                  "Property": "Date"
+                }
+              },
+              "queryRef": "Mashup Logs.Date",
+              "nativeQueryRef": "Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mashup Logs"
+                    }
+                  },
+                  "Property": "Time"
+                }
+              },
+              "queryRef": "Mashup Logs.Time",
+              "nativeQueryRef": "Time"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mashup Logs"
+                    }
+                  },
+                  "Property": "Action Group"
+                }
+              },
+              "queryRef": "Mashup Logs.Action Group",
+              "nativeQueryRef": "Action Group",
+              "displayName": "Action"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mashup Logs"
+                    }
+                  },
+                  "Property": "Action Detail"
+                }
+              },
+              "queryRef": "Mashup Logs.Action Detail",
+              "nativeQueryRef": "Action Detail",
+              "displayName": "Detail"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mashup Logs"
+                    }
+                  },
+                  "Property": "Identity"
+                }
+              },
+              "queryRef": "Mashup Logs.Identity",
+              "nativeQueryRef": "Identity"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Mashup Logs"
+                        }
+                      },
+                      "Property": "Duration (ms)"
+                    }
+                  },
+                  "Function": 1
+                }
+              },
+              "queryRef": "Avg(Mashup Logs.Duration (ms))",
+              "nativeQueryRef": "Duration (ms)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mashup Logs"
+                    }
+                  },
+                  "Property": "Max Pool (Pending)"
+                }
+              },
+              "queryRef": "Mashup Logs.Max Pool (Pending)",
+              "nativeQueryRef": "Max Pool (Pending)",
+              "displayName": "Pending"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mashup Logs"
+                    }
+                  },
+                  "Property": "Max Pool (Running)"
+                }
+              },
+              "queryRef": "Mashup Logs.Max Pool (Running)",
+              "nativeQueryRef": "Max Pool (Running)",
+              "displayName": "Running"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Gateways"
+                    }
+                  },
+                  "Property": "Gateway"
+                }
+              },
+              "queryRef": "Gateways.Gateway",
+              "nativeQueryRef": "Gateway"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mashup Logs"
+                    }
+                  },
+                  "Property": "ActivityId"
+                }
+              },
+              "queryRef": "Mashup Logs.ActivityId",
+              "nativeQueryRef": "ActivityId"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mashup Logs"
+                    }
+                  },
+                  "Property": "ContainerID"
+                }
+              },
+              "queryRef": "Mashup Logs.ContainerID",
+              "nativeQueryRef": "ContainerID"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mashup Logs"
+                    }
+                  },
+                  "Property": "Pid"
+                }
+              },
+              "queryRef": "Mashup Logs.Pid",
+              "nativeQueryRef": "Pid"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mashup Logs"
+                    }
+                  },
+                  "Property": "Process"
+                }
+              },
+              "queryRef": "Mashup Logs.Process",
+              "nativeQueryRef": "Process"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mashup Logs"
+                    }
+                  },
+                  "Property": "ProductVersion"
+                }
+              },
+              "queryRef": "Mashup Logs.ProductVersion",
+              "nativeQueryRef": "ProductVersion"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mashup Logs"
+                    }
+                  },
+                  "Property": "EngineEdition"
+                }
+              },
+              "queryRef": "Mashup Logs.EngineEdition",
+              "nativeQueryRef": "EngineEdition"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mashup Logs"
+                    }
+                  },
+                  "Property": "ResourceKind"
+                }
+              },
+              "queryRef": "Mashup Logs.ResourceKind",
+              "nativeQueryRef": "ResourceKind"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mashup Logs"
+                    }
+                  },
+                  "Property": "ResourcePath"
+                }
+              },
+              "queryRef": "Mashup Logs.ResourcePath",
+              "nativeQueryRef": "ResourcePath"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mashup Logs"
+                    }
+                  },
+                  "Property": "ConnectionTimeout"
+                }
+              },
+              "queryRef": "Mashup Logs.ConnectionTimeout",
+              "nativeQueryRef": "ConnectionTimeout"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mashup Logs"
+                    }
+                  },
+                  "Property": "CommandTimeout"
+                }
+              },
+              "queryRef": "Mashup Logs.CommandTimeout",
+              "nativeQueryRef": "CommandTimeout"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mashup Logs"
+                    }
+                  },
+                  "Property": "FirewallGroup"
+                }
+              },
+              "queryRef": "Mashup Logs.FirewallGroup",
+              "nativeQueryRef": "FirewallGroup"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mashup Logs"
+                    }
+                  },
+                  "Property": "NonFatalError"
+                }
+              },
+              "queryRef": "Mashup Logs.NonFatalError",
+              "nativeQueryRef": "NonFatalError"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mashup Logs"
+                    }
+                  },
+                  "Property": "Filename"
+                }
+              },
+              "queryRef": "Mashup Logs.Filename",
+              "nativeQueryRef": "Filename"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mashup Logs"
+                    }
+                  },
+                  "Property": "Error (Y/N)"
+                }
+              },
+              "queryRef": "Mashup Logs.Error (Y/N)",
+              "nativeQueryRef": "Error (Y/N)"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mashup Logs"
+                    }
+                  },
+                  "Property": "GatewayId"
+                }
+              },
+              "queryRef": "Mashup Logs.GatewayId",
+              "nativeQueryRef": "GatewayId"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Mashup Logs"
+                  }
+                },
+                "Property": "Date"
+              }
+            },
+            "direction": "Descending"
+          },
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Mashup Logs"
+                  }
+                },
+                "Property": "Time"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "values": [
+        {
+          "properties": {
+            "fontColorPrimary": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 1,
+                      "Percent": 0
+                    }
+                  }
+                }
+              }
+            },
+            "backColorPrimary": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#F2F2F2'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontColorSecondary": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#505050'"
+                    }
+                  }
+                }
+              }
+            },
+            "backColorSecondary": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 0,
+                      "Percent": 0
+                    }
+                  }
+                }
+              }
+            },
+            "wordWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "total": [
+        {
+          "properties": {
+            "totals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "grid": [
+        {
+          "properties": {
+            "gridVertical": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "columnHeaders": [
+        {
+          "properties": {
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 0,
+                      "Percent": 0
+                    }
+                  }
+                }
+              }
+            },
+            "backColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#00A6D4'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            },
+            "wordWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "494.47488171918576D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Logs.EventText"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "91.4137686428204D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Logs.Date"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "83D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Logs.Hour1"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "93.30046640302187D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Logs.Level"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "82D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Logs.ActivityType"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "70D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Logs.Hash"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "255D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Logs.GatewayId"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "259D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Logs.ClientActivityId"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "262D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Logs.ActivityId"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "259D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Logs.HelperId"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "111.07275156373353D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Mashup Logs.ConnectionTimeout"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "61.78449180620245D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Mashup Logs.Identity"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "174.82856877022806D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Mashup Logs.Action Group"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "185.85717617522172D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Mashup Logs.Action Detail"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#FFFFFF'"
+                    }
+                  }
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "titleWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "stylePreset": [
+        {
+          "properties": {
+            "name": {
+              "expr": {
+                "Literal": {
+                  "Value": "'None'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "radius": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "dropShadow": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "preset": {
+              "expr": {
+                "Literal": {
+                  "Value": "'BottomRight'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

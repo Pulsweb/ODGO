@@ -1,0 +1,7 @@
+# Text files are stored and checked out with LF on every platform (generated files are byte-compared by tests).
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary
+*.abf binary

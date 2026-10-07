@@ -1,0 +1,346 @@
+/// Mashup engine events.
+table 'Mashup Logs'
+	lineageTag: 6825ddf4-45f4-4cc1-98d9-cc9a9dc05f3e
+	sourceLineageTag: [gold].[mashup_logs]
+
+	measure 'Max Pool (Pending)' = MAX('Mashup Logs'[pendingCount])
+		formatString: 0
+		lineageTag: 03d9ec11-624f-477f-874f-570f22f074e9
+
+	measure 'Max Pool (Running)' = MAX('Mashup Logs'[runningCount])
+		formatString: 0
+		lineageTag: e5bed470-4de2-4444-ae40-6d455132565b
+
+	measure 'Avg. Mashup Duration (ms)' = AVERAGE('Mashup Logs'[Duration (ms)])
+		formatString: #,0.0
+		lineageTag: df7fa3a7-add2-4bd4-8e8e-80d18e5cef0d
+
+	measure '# Mashup Logs' = COUNTROWS('Mashup Logs')
+		formatString: #,0
+		lineageTag: 2cb089ea-7306-4588-aacb-8abba26ca8f5
+
+	measure '# Mashup Errors' = CALCULATE([# Mashup Logs], 'Mashup Logs'[Error (Y/N)] = "Y")
+		formatString: #,0
+		lineageTag: 98ed963e-9ccc-497b-9ec3-89c030d2106b
+
+	measure '# Mashup Queries' = DISTINCTCOUNTNOBLANK('Mashup Logs'[CommandText])
+		formatString: 0
+		lineageTag: 6bca4e06-9dcc-49f1-a10c-0187c7935943
+
+	measure '# Mashup Containers' = DISTINCTCOUNTNOBLANK('Mashup Logs'[ContainerID])
+		formatString: 0
+		lineageTag: 4d5aad8c-d439-489d-ad2a-cc37cf1af549
+
+	column Action
+		dataType: string
+		lineageTag: bf67836e-70a9-4b91-b358-a34ee80e343a
+		sourceLineageTag: action
+		summarizeBy: none
+		sourceColumn: action
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Action Detail'
+		dataType: string
+		lineageTag: c788887a-ad9c-46d0-beeb-f325f4f339ec
+		sourceLineageTag: action_detail
+		summarizeBy: none
+		sourceColumn: action_detail
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Action Group'
+		dataType: string
+		lineageTag: cf6e8f47-f1fb-46d3-9559-169500b62182
+		sourceLineageTag: action_group
+		summarizeBy: none
+		sourceColumn: action_group
+
+		annotation SummarizationSetBy = Automatic
+
+	column ActivityId
+		dataType: string
+		lineageTag: 1c3f2a5a-c561-4c57-a7fb-3012dee1670a
+		sourceLineageTag: activity_id
+		summarizeBy: none
+		sourceColumn: activity_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column CommandText
+		dataType: string
+		lineageTag: 3caaa576-4231-4557-9e45-f3888ef6c161
+		sourceLineageTag: command_text
+		summarizeBy: none
+		sourceColumn: command_text
+
+		annotation SummarizationSetBy = Automatic
+
+	column CommandTimeout
+		dataType: int64
+		formatString: 0
+		lineageTag: e3dc637f-c0eb-43cd-80b5-2dceebe5178c
+		sourceLineageTag: command_timeout
+		summarizeBy: none
+		sourceColumn: command_timeout
+
+		annotation SummarizationSetBy = User
+
+	column ConnectionTimeout
+		dataType: int64
+		formatString: 0
+		lineageTag: a33cd395-4b66-4dc5-a6d8-b4589fbfd2c3
+		sourceLineageTag: connection_timeout
+		summarizeBy: none
+		sourceColumn: connection_timeout
+
+		annotation SummarizationSetBy = User
+
+	column ContainerID
+		dataType: int64
+		formatString: 0
+		lineageTag: 2493ed7a-c278-4d12-907a-89094ab74664
+		sourceLineageTag: container_id
+		summarizeBy: none
+		sourceColumn: container_id
+
+		annotation SummarizationSetBy = User
+
+	column Date
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 9a846ae9-43c7-4db7-b8d3-f88ca33b9fb1
+		sourceLineageTag: date
+		summarizeBy: none
+		sourceColumn: date
+
+		changedProperty = IsHidden
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column DateTime
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: cd44ddd5-42e5-4e81-8cf9-106a90620b8d
+		sourceLineageTag: date_time
+		summarizeBy: none
+		sourceColumn: date_time
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Duration (ms)'
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 07880865-9fe4-487d-9150-659f00f1f41d
+		sourceLineageTag: duration_ms
+		summarizeBy: average
+		sourceColumn: duration_ms
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = User
+
+	column EngineEdition
+		dataType: string
+		lineageTag: e10c0221-030f-4e3a-a481-6c9cfa1069f7
+		sourceLineageTag: engine_edition
+		summarizeBy: none
+		sourceColumn: engine_edition
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Error (Y/N)'
+		dataType: string
+		lineageTag: 0dbabffb-5899-4e99-9f7e-e285c52bb3d7
+		sourceLineageTag: error_yn
+		summarizeBy: none
+		sourceColumn: error_yn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Exception
+		dataType: string
+		lineageTag: d945b1e9-ac4b-4135-99a8-13f3784aea92
+		sourceLineageTag: exception
+		summarizeBy: none
+		sourceColumn: exception
+
+		annotation SummarizationSetBy = Automatic
+
+	column Filename
+		dataType: string
+		lineageTag: 3a3c380b-061f-42fe-802e-9fd9bf7de658
+		sourceLineageTag: file_name
+		summarizeBy: none
+		sourceColumn: file_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column FirewallGroup
+		dataType: string
+		lineageTag: e161efec-92f1-49f3-b56e-dfe283e4d1b8
+		sourceLineageTag: firewall_group
+		summarizeBy: none
+		sourceColumn: firewall_group
+
+		annotation SummarizationSetBy = Automatic
+
+	column GatewayId
+		dataType: string
+		lineageTag: 22d226dc-c904-471d-bba0-5a5395a9a9ad
+		sourceLineageTag: gateway_id
+		summarizeBy: none
+		sourceColumn: gateway_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column Identity
+		dataType: string
+		lineageTag: a0a3f9e1-de77-4cea-a809-fa808d550dc2
+		sourceLineageTag: identity
+		summarizeBy: none
+		sourceColumn: identity
+
+		annotation SummarizationSetBy = Automatic
+
+	column NonFatalError
+		dataType: string
+		lineageTag: 90cd48f5-bd9f-4094-8280-7a0a4af6746a
+		sourceLineageTag: non_fatal_error
+		summarizeBy: none
+		sourceColumn: non_fatal_error
+
+		annotation SummarizationSetBy = Automatic
+
+	column Pid
+		dataType: int64
+		formatString: 0
+		lineageTag: 4ead0e24-2309-4ab5-b588-c0e21b1b271b
+		sourceLineageTag: pid
+		summarizeBy: none
+		sourceColumn: pid
+
+		annotation SummarizationSetBy = User
+
+	column Process
+		dataType: string
+		lineageTag: 5c41ff91-8be4-4a47-a348-5dd9b7667acb
+		sourceLineageTag: process
+		summarizeBy: none
+		sourceColumn: process
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProductVersion
+		dataType: string
+		lineageTag: c9947ace-9f56-49b9-a49a-3a3c4ae7f1a4
+		sourceLineageTag: product_version
+		summarizeBy: none
+		sourceColumn: product_version
+
+		annotation SummarizationSetBy = Automatic
+
+	column ResourceKind
+		dataType: string
+		lineageTag: 46708dc1-23e8-4ba3-a64a-e6623e6f1e14
+		sourceLineageTag: resource_kind
+		summarizeBy: none
+		sourceColumn: resource_kind
+
+		annotation SummarizationSetBy = Automatic
+
+	column ResourcePath
+		dataType: string
+		lineageTag: 4d799b65-e543-4aa9-8e81-299a68d36f40
+		sourceLineageTag: resource_path
+		summarizeBy: none
+		sourceColumn: resource_path
+
+		annotation SummarizationSetBy = Automatic
+
+	column RowCount
+		dataType: int64
+		formatString: #,0
+		lineageTag: 60de2fb0-db6f-4b79-9594-a0e1ab63e329
+		sourceLineageTag: row_count
+		summarizeBy: average
+		sourceColumn: row_count
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = User
+
+	column Time
+		dataType: dateTime
+		formatString: Long Time
+		lineageTag: 64df527c-e3d0-4e3c-b5b5-32d849244db3
+		sourceLineageTag: time_of_day
+		summarizeBy: none
+		sourceColumn: time_of_day
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Time
+
+	column TimeId
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b3cd67cb-7b69-4cba-95fa-8c5e63a3ec30
+		sourceLineageTag: time_id
+		summarizeBy: none
+		sourceColumn: time_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column pendingCount
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 1ab0612d-ce26-425f-84c0-0f1f6b960b3c
+		sourceLineageTag: pending_count
+		summarizeBy: sum
+		sourceColumn: pending_count
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column poolCount
+		dataType: int64
+		formatString: 0
+		lineageTag: 2283eb85-0908-43f7-b2ae-08eabb7e59e3
+		sourceLineageTag: pool_count
+		summarizeBy: sum
+		sourceColumn: pool_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column runningCount
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 9b74107c-ea47-4511-a12b-5cc608e219a0
+		sourceLineageTag: running_count
+		summarizeBy: sum
+		sourceColumn: running_count
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Mashup Logs' = entity
+		mode: directLake
+		source
+			entityName: mashup_logs
+			schemaName: gold
+			expressionSource: 'DirectLake - Gateway Monitor'
+

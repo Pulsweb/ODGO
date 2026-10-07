@@ -1,0 +1,29 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json",
+  "name": "ReportSectionbbe05bcdd43cb5131bc2",
+  "displayName": "tlt - LogText",
+  "displayOption": "ActualSize",
+  "height": 240.0,
+  "width": 320.0,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filtera20d217eb0575deb85fd",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Queries"
+              }
+            },
+            "Property": "QueryTrackingId"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      }
+    ]
+  },
+  "type": "Tooltip",
+  "visibility": "HiddenInViewMode"
+}

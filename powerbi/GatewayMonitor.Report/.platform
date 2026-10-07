@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "Gateway Monitor",
+    "description": "On-premises data gateway monitoring report (migrated from pbigtwmonitor)."
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "4746aade-f68a-56ab-8ee2-adbcdbb309a6"
+  }
+}

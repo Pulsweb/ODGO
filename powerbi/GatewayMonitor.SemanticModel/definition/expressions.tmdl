@@ -1,0 +1,9 @@
+expression 'DirectLake - Gateway Monitor' =
+		let
+		    Source = AzureStorage.DataLake("https://onelake.dfs.fabric.microsoft.com/{{FABRIC_WORKSPACE_ID}}/{{FABRIC_LAKEHOUSE_ID}}", [HierarchicalNavigation=true])
+		in
+		    Source
+	lineageTag: 3fcc8f6d-b804-56c3-97d4-a36664f80681
+
+	annotation PBI_IncludeFutureArtifacts = False
+

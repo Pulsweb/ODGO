@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Notebook",
+    "displayName": "nb_gwmon_lib",
+    "description": "ODGO shared library (parsers, contracts, Spark helpers). Loaded with %run."
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "d2780493-0338-59de-b4d7-dd38d91352b4"
+  }
+}

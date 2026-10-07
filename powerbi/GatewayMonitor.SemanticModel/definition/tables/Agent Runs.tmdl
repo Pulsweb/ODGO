@@ -1,0 +1,204 @@
+/// Collection agent runs (heartbeats) (new ingestion metric).
+table 'Agent Runs'
+	lineageTag: e4865a6a-aeb2-5463-8a3e-da94b1fcee2a
+	sourceLineageTag: [gold].[ingestion_agent_runs]
+
+	/// Collection agent runs (heartbeats).
+	measure '# Agent Runs' = COUNTROWS('Agent Runs')
+		formatString: #,0
+		displayFolder: Ingestion Health
+		lineageTag: 2b8a617f-c3e8-59a5-adde-987db69a6add
+
+	/// Agent runs that failed.
+	measure '# Failed Agent Runs' = COALESCE(CALCULATE(COUNTROWS('Agent Runs'), 'Agent Runs'[Status] = "Failed"), 0)
+		formatString: #,0
+		displayFolder: Ingestion Health
+		lineageTag: ed1c1ad6-f2bb-5c1e-96dd-526e2e7d65cb
+
+	/// Share of agent runs that succeeded.
+	measure 'Agent Run Success Rate' = DIVIDE(CALCULATE(COUNTROWS('Agent Runs'), 'Agent Runs'[Status] = "Succeeded"), [# Agent Runs])
+		formatString: 0.0%
+		displayFolder: Ingestion Health
+		lineageTag: 70f64bba-58c5-5ddd-9a46-d72f78ddb681
+
+	column 'Run Id'
+		dataType: string
+		lineageTag: 7ada5740-ae34-5f7f-80d4-ee54a8a78eab
+		sourceLineageTag: run_id
+		summarizeBy: none
+		sourceColumn: run_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column ServerId
+		dataType: string
+		isHidden
+		lineageTag: adb71456-8610-53fd-a5a5-bd3096b9ea98
+		sourceLineageTag: server_id
+		summarizeBy: none
+		sourceColumn: server_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column Environment
+		dataType: string
+		lineageTag: fc79fb4c-a354-5c17-8525-425c1353a9ae
+		sourceLineageTag: environment
+		summarizeBy: none
+		sourceColumn: environment
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Agent Version'
+		dataType: string
+		lineageTag: ab9d1751-1f09-5cb5-9b62-1b4c5a01a794
+		sourceLineageTag: agent_version
+		summarizeBy: none
+		sourceColumn: agent_version
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Agent Instance Id'
+		dataType: string
+		lineageTag: ddd5acce-2f8e-55a3-a4da-a92668f0cd17
+		sourceLineageTag: agent_instance_id
+		summarizeBy: none
+		sourceColumn: agent_instance_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Started (UTC)'
+		dataType: dateTime
+		formatString: yyyy-mm-dd hh:nn:ss
+		lineageTag: 1e98b65c-488b-5110-a615-569d22d9fbb5
+		sourceLineageTag: started_utc
+		summarizeBy: none
+		sourceColumn: started_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ended (UTC)'
+		dataType: dateTime
+		formatString: yyyy-mm-dd hh:nn:ss
+		lineageTag: 6301103d-7a88-5fcd-8748-297602f5a4ae
+		sourceLineageTag: ended_utc
+		summarizeBy: none
+		sourceColumn: ended_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Run Date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 936ed909-a060-575f-a006-975020b2acc4
+		sourceLineageTag: run_date
+		summarizeBy: none
+		sourceColumn: run_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Duration (s)'
+		dataType: double
+		formatString: #,0.0
+		lineageTag: f47b22c9-7b47-5a60-b5d5-8f66945d6e0f
+		sourceLineageTag: duration_seconds
+		summarizeBy: average
+		sourceColumn: duration_seconds
+
+		annotation SummarizationSetBy = Automatic
+
+	column Status
+		dataType: string
+		lineageTag: 561a0db5-cf4c-52ab-80f9-daf0d72dc204
+		sourceLineageTag: status
+		summarizeBy: none
+		sourceColumn: status
+
+		annotation SummarizationSetBy = Automatic
+
+	column Trigger
+		dataType: string
+		lineageTag: abffab0e-b4f9-5719-9cd4-207377cf1371
+		sourceLineageTag: trigger
+		summarizeBy: none
+		sourceColumn: trigger
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Auth Mode'
+		dataType: string
+		lineageTag: 7e6dbfe6-736d-5b3e-a58b-c7876f54106d
+		sourceLineageTag: auth_mode
+		summarizeBy: none
+		sourceColumn: auth_mode
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Files Scanned'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 6dbd344b-0d61-58d2-80a5-aaf09a1c6793
+		sourceLineageTag: files_scanned
+		summarizeBy: sum
+		sourceColumn: files_scanned
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Segments Uploaded'
+		dataType: int64
+		formatString: #,0
+		lineageTag: e0eeeb04-e513-53ff-b802-644dddbed9b0
+		sourceLineageTag: segments_uploaded
+		summarizeBy: sum
+		sourceColumn: segments_uploaded
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Bytes Uploaded'
+		dataType: int64
+		formatString: #,0
+		lineageTag: ace6bec0-955f-5c94-8992-f1d96185993a
+		sourceLineageTag: bytes_uploaded
+		summarizeBy: sum
+		sourceColumn: bytes_uploaded
+
+		annotation SummarizationSetBy = Automatic
+
+	column Errors
+		dataType: int64
+		formatString: #,0
+		lineageTag: 85c10096-8899-5b77-8cc7-34d91d9a76ed
+		sourceLineageTag: errors
+		summarizeBy: sum
+		sourceColumn: errors
+
+		annotation SummarizationSetBy = Automatic
+
+	column Warnings
+		dataType: int64
+		formatString: #,0
+		lineageTag: b0148c57-d669-533e-b6de-e006ef514f2d
+		sourceLineageTag: warnings
+		summarizeBy: sum
+		sourceColumn: warnings
+
+		annotation SummarizationSetBy = Automatic
+
+	column Issues
+		dataType: string
+		lineageTag: edb3800d-dadb-545c-aea3-c44c6ff8dafc
+		sourceLineageTag: issues_summary
+		summarizeBy: none
+		sourceColumn: issues_summary
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Agent Runs' = entity
+		mode: directLake
+		source
+			entityName: ingestion_agent_runs
+			schemaName: gold
+			expressionSource: 'DirectLake - Gateway Monitor'
+

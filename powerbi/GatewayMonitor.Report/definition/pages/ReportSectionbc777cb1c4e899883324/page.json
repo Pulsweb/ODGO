@@ -1,0 +1,186 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json",
+  "name": "ReportSectionbc777cb1c4e899883324",
+  "displayName": "Requests",
+  "displayOption": "FitToPage",
+  "height": 720.0,
+  "width": 1280.0,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filter272f2712a021c27c07a3",
+        "ordinal": 0,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Requests"
+              }
+            },
+            "Property": "Has Queries (Y/N)"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "r",
+              "Entity": "Requests",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "r"
+                          }
+                        },
+                        "Property": "Has Queries (Y/N)"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Y'"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User"
+      },
+      {
+        "name": "Filterff0d4d5deab9f9b658fa",
+        "ordinal": 1,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Requests"
+              }
+            },
+            "Property": "RequestId"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filter27269836b58f265be98f",
+        "ordinal": 2,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Logs"
+              }
+            },
+            "Property": "EventText"
+          }
+        },
+        "type": "Advanced",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filterd216be92d2580679dc3f",
+        "ordinal": 3,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Logs"
+              }
+            },
+            "Property": "GatewayId"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filter054d844546d38a288784",
+        "ordinal": 4,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Queries"
+              }
+            },
+            "Property": "DatasetId"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "Filter05d2b49872d06fb9908b",
+        "ordinal": 5,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Queries"
+              }
+            },
+            "Property": "WorkspaceId"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      }
+    ],
+    "filterSortOrder": "Custom"
+  },
+  "objects": {
+    "background": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'#F2F2F2'"
+                  }
+                }
+              }
+            }
+          },
+          "transparency": {
+            "expr": {
+              "Literal": {
+                "Value": "0D"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "visualInteractions": [
+    {
+      "source": "6a82b92dc6b01b6a1066",
+      "target": "57199ce31ba200e2603c",
+      "type": "NoFilter"
+    },
+    {
+      "source": "6a82b92dc6b01b6a1066",
+      "target": "714f738bb941080b5805",
+      "type": "NoFilter"
+    }
+  ]
+}

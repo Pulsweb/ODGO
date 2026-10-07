@@ -1,0 +1,420 @@
+/// Gateway queries (start ⟕ execution).
+table Queries
+	lineageTag: 6cdef62f-7a83-46c6-b49f-2ddb0b891db9
+	sourceLineageTag: [gold].[queries]
+
+	measure '# Queries' = ```
+			COUNTROWS('Queries')
+			
+			```
+		formatString: #,0
+		lineageTag: 2eed33be-ae02-4ad8-85fa-a5b8ea6fb4ef
+
+	/// Time difference in ms from the QueryStart and QueryEnd
+	measure 'Query Avg. Execution (ms)' = ```
+			
+			AVERAGE('Queries'[TotalQueryExecution(ms)])
+			/*AVERAGEX('Gateway Queries', 
+			[QueryExecutionDuration(ms)] 
+			+ [DataProcessingDuration(ms)] 
+			// + [DataReadingAndSerializationDuration(ms)] 
+			// + [SpoolingDiskReadingDuration(ms)] 
+			// + [SpoolingDiskWritingDuration(ms)]
+			)*/
+			```
+		formatString: #,0
+		lineageTag: 58674b3c-3e06-4bb4-8313-4941e778a941
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Query Avg. Execution - DirectQuery (ms)' = CALCULATE([Query Avg. Execution (ms)], KEEPFILTERS('Queries'[QueryType] = "DirectQuery"))
+		formatString: #,0
+		lineageTag: c430801b-064a-48de-aa65-e0aaba26d10e
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Query Avg. Execution - Refresh (ms)' = CALCULATE('Queries'[Query Avg. Execution (ms)], KEEPFILTERS('Queries'[QueryType] = "Refresh"))
+		formatString: #,0
+		lineageTag: 04a183f2-cc8a-47a8-9d9c-2c03afee31b6
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Success formatting' = IF(FIRSTNONBLANK('Queries'[Success],0)="Y", 1,0)
+		formatString: 0
+		lineageTag: 7d928ea6-bc82-4b67-b482-cc4a9de7c9ac
+
+	measure 'Disk Read Avg. (byte/sec)' = AVERAGEX('Queries', DIVIDE([SpoolingTotalDataSize(byte)] , [SpoolingDiskReadingDuration(ms)] / 1000))
+		formatString: #,0
+		lineageTag: 4baee74e-1b66-417a-92db-8754e1b0af9f
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Disk Write Avg. (byte/sec)' = AVERAGEX('Queries', DIVIDE([SpoolingTotalDataSize(byte)] , [SpoolingDiskWritingDuration(ms)] / 1000))
+		formatString: #,0
+		lineageTag: 61b0e8d9-0f80-4b70-96d8-db1c3c2515ec
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure '# Requests (Queries)' = DISTINCTCOUNT('Queries'[RequestId])
+		formatString: #,0
+		lineageTag: bd169a94-ba75-490e-8033-e7f77b54b55b
+
+	measure '# Queries (Refresh)' = CALCULATE([# Queries], KEEPFILTERS('Queries'[QueryType] = "Refresh"))
+		formatString: #,0
+		lineageTag: 0e4dcf96-9c35-466e-96c5-09bd1e98ff9a
+
+	measure '# Queries (DirectQuery)' = CALCULATE([# Queries], KEEPFILTERS('Queries'[QueryType] = "DirectQuery"))
+		formatString: #,0
+		lineageTag: 40da288c-c4a1-4459-9bf7-aa9d9a49b70c
+
+	measure '# Gateways (Queries)' = DISTINCTCOUNT('Queries'[GatewayId])
+		formatString: 0
+		lineageTag: 563a4c9b-6a0e-4776-9d01-639f6c069b63
+
+	measure '# Queries - Concurrent' = ```
+			
+			 var rangeStart = MIN('Calendar'[Date]) + SWITCH(TRUE(), ISINSCOPE('Time'[Minute]), MIN('Time'[Minute]), ISINSCOPE('Time'[Quarter Hour]), MIN('Time'[Quarter Hour]), ISINSCOPE('Time'[Half Hour]), MIN('Time'[Half Hour]), ISINSCOPE('Time'[Hour]), MIN('Time'[Hour]))
+			 var gatewayCount = COUNTROWS(VALUES('Queries'[GatewayId]))
+			
+			return IF(gatewayCount > 1, error("Please filter a gateway, this measure don't work with multiple gateways selected"), 
+			CALCULATE([# Queries], 
+			FILTER(
+			ADDCOLUMNS(
+			    //ALLEXCEPT('Gateway Queries', 'Gateway Queries'[DataSource Kind], 'Gateway Queries'[Success], 'Gateway Queries'[QueryType])
+			    CALCULATETABLE('Queries', ALL('Time'))
+			    , "Start Datetime", [Start Date] + [Start Time], "End Datetime", [End Date] + [End Time])
+			, 
+			[Start Datetime] <= rangeStart && [End Datetime] > rangeStart)
+			)
+			
+			// var queriesInPeriod = FILTER(ALL('Gateway Queries'), 
+			//      var queryStart = [Start Datetime]
+			//      var queryEnd = [End Datetime]
+			//     // var queryStart = [Date] + [Time]
+			//     // var queryEnd = [End Date] + [End Time]
+			//     return 
+			//         queryStart <> BLANK() && queryEnd <> BLANK() &&
+			
+			//         queryStart <= rangeStart && queryEnd > rangeStart
+			//        // queryStart <= rangeStart && queryEnd > rangeStart
+			//         )
+			
+			// //var queriesInPeriod = FILTER(ALL('Gateway Queries'), 'Gateway Queries'[Start Datetime] >= rangeStart && 'Gateway Queries'[End Datetime] > rangeEnd)
+			    
+			// return  COUNTROWS(queriesInPeriod)//MAXX(queriesInPeriod, [End Datetime]) //
+			/*
+			SUMX('Gateway Queries'
+			, 
+			    var queryStart = [Date] + [Time]
+			    var queryEnd = [End Date] + [End Time]
+			
+			    return IF(queryStart = BLANK() || queryEnd = BLANK(), 0, IF(queryStart >= rangeStart && queryEnd > rangeEnd, 1, BLANK()))
+			)
+			*/)
+			```
+		formatString: 0
+		lineageTag: eebc2978-9b42-4193-94e5-890bacfe2725
+
+	measure '# Queries - Concurrent (DirectQuery)' = CALCULATE([# Queries - Concurrent], 'Queries'[QueryType] = "DirectQuery")
+		formatString: 0
+		lineageTag: 842727d3-879a-4a7c-ad45-f8a7a2c4d2b9
+
+	measure '# Queries - Concurrent (Refresh)' = CALCULATE([# Queries - Concurrent], 'Queries'[QueryType] = "Refresh")
+		formatString: 0
+		lineageTag: 743685fd-cf1f-4094-823b-49a97477ee5c
+
+	measure '# Queries (Errors)' = CALCULATE([# Queries], 'Queries'[Success] = "N")
+		formatString: #,0
+		lineageTag: 5f837e3f-6c97-4e4f-9f6d-c4e646e63922
+
+	/// Duration for data processing activities like spooling, data retrieval, compression, and data processing.
+	column DataProcessingDuration(ms)
+		dataType: int64
+		formatString: #,0
+		lineageTag: 9192c077-b0cd-47c1-b135-1e0454cf0bf5
+		sourceLineageTag: data_processing_duration_ms
+		summarizeBy: average
+		sourceColumn: data_processing_duration_ms
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = User
+
+	/// Indicates the amount of time the gateway takes to read data from the datasource and serialize them into packets.
+	column DataReadingAndSerializationDuration(ms)
+		dataType: int64
+		formatString: #,0
+		lineageTag: 02b5c7d7-ea7a-4bef-9ce4-35ddcf122d39
+		sourceLineageTag: data_reading_and_serialization_duration_ms
+		summarizeBy: average
+		sourceColumn: data_reading_and_serialization_duration_ms
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = User
+
+	column DatasetId
+		dataType: string
+		lineageTag: acf85cf6-d209-40af-916e-fd3877ac0861
+		sourceLineageTag: dataset_id
+		summarizeBy: none
+		sourceColumn: dataset_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column Datasources
+		dataType: string
+		lineageTag: f82fd573-d2db-49ef-91a9-f2e45f7d22a0
+		sourceLineageTag: datasources
+		summarizeBy: none
+		sourceColumn: datasources
+
+		annotation SummarizationSetBy = Automatic
+
+	column DateTime
+		dataType: dateTime
+		formatString: yyyy-mm-dd hh:nn:ss
+		lineageTag: 6413bf45-8c59-4e63-892f-80151f52c71e
+		sourceLineageTag: date_time
+		summarizeBy: none
+		sourceColumn: date_time
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column 'End Date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 08668589-d98b-4483-98d7-0c7f1160e34a
+		sourceLineageTag: end_date
+		summarizeBy: none
+		sourceColumn: end_date
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column 'End Time'
+		dataType: dateTime
+		formatString: Long Time
+		lineageTag: 6b749bfa-e0ad-417f-aa4f-2abb788ba458
+		sourceLineageTag: end_time
+		summarizeBy: none
+		sourceColumn: end_time
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Time
+
+	column ErrorMessage
+		dataType: string
+		lineageTag: 27b2c9c9-d753-43f1-a464-66bfdb0cad15
+		sourceLineageTag: error_message
+		summarizeBy: none
+		sourceColumn: error_message
+
+		annotation SummarizationSetBy = Automatic
+
+	column Filename
+		dataType: string
+		lineageTag: da9f737b-455b-40e0-9c72-bc62e7e67fef
+		sourceLineageTag: file_name
+		summarizeBy: none
+		sourceColumn: file_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column GatewayId
+		dataType: string
+		lineageTag: e986c8bd-49bd-4285-af59-5fc5c9fc8d14
+		sourceLineageTag: gateway_id
+		summarizeBy: none
+		sourceColumn: gateway_id
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Duration for a query execution.
+	column QueryExecutionDuration(ms)
+		dataType: int64
+		formatString: #,0
+		lineageTag: 7169f51f-214f-453b-922b-ff09de7c269c
+		sourceLineageTag: query_execution_duration_ms
+		summarizeBy: average
+		sourceColumn: query_execution_duration_ms
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = User
+
+	column QueryText
+		dataType: string
+		lineageTag: 475068cb-2c00-4e6f-b7e1-2a35b366d275
+		sourceLineageTag: query_text
+		summarizeBy: none
+		sourceColumn: query_text
+
+		annotation SummarizationSetBy = Automatic
+
+	column QueryTrackingId
+		dataType: string
+		lineageTag: a62ea12d-5b75-407a-b028-5341d8f7fcf6
+		sourceLineageTag: query_tracking_id
+		summarizeBy: none
+		sourceColumn: query_tracking_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column QueryType
+		dataType: string
+		lineageTag: 6be16306-f021-4048-9341-6020b4a0f36c
+		sourceLineageTag: query_type
+		summarizeBy: none
+		sourceColumn: query_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column RequestId
+		dataType: string
+		lineageTag: 389306af-575b-459b-8e1d-7abd7cf53e96
+		sourceLineageTag: request_id
+		summarizeBy: none
+		sourceColumn: request_id
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates the amount of time by the gateway to read all data to disk
+	column SpoolingDiskReadingDuration(ms)
+		dataType: int64
+		formatString: #,0
+		lineageTag: fb571dd8-5dc9-42be-8951-f5a014097fb8
+		sourceLineageTag: spooling_disk_reading_duration_ms
+		summarizeBy: average
+		sourceColumn: spooling_disk_reading_duration_ms
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = User
+
+	/// Indicates the amount of time by the gateway to write all data to disk
+	column SpoolingDiskWritingDuration(ms)
+		dataType: int64
+		formatString: #,0
+		lineageTag: eff520eb-abbc-4780-a4b5-17218cf8cf5f
+		sourceLineageTag: spooling_disk_writing_duration_ms
+		summarizeBy: average
+		sourceColumn: spooling_disk_writing_duration_ms
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = User
+
+	/// Size(Compressed) of the data that is written to/read from disk
+	column SpoolingTotalDataSize(byte)
+		dataType: int64
+		formatString: #,0
+		lineageTag: 1b56ce75-d875-4271-8799-110dd9f92d14
+		sourceLineageTag: spooling_total_data_size_bytes
+		summarizeBy: average
+		sourceColumn: spooling_total_data_size_bytes
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = User
+
+	column 'Start Date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 70e0ae53-8310-4a14-915e-5d4ec27f9f4c
+		sourceLineageTag: start_date
+		summarizeBy: none
+		sourceColumn: start_date
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column 'Start Time'
+		dataType: dateTime
+		formatString: Long Time
+		lineageTag: e0e03323-f7e1-4b08-b79f-a571fa6fe2b9
+		sourceLineageTag: start_time
+		summarizeBy: none
+		sourceColumn: start_time
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Time
+
+	column Success
+		dataType: string
+		lineageTag: 172e1674-b0cc-4b1b-8510-a60052f59e22
+		sourceLineageTag: success
+		summarizeBy: none
+		sourceColumn: success
+
+		annotation SummarizationSetBy = Automatic
+
+	column TimeId
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 012cb956-9b59-491b-8414-da35dd1ecca9
+		sourceLineageTag: time_id
+		summarizeBy: none
+		sourceColumn: time_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TotalQueryExecution(ms)
+		dataType: int64
+		formatString: #,0
+		lineageTag: 4eeb059e-2e5f-4a47-a684-d4f7b7c21002
+		sourceLineageTag: total_query_execution_ms
+		summarizeBy: average
+		sourceColumn: total_query_execution_ms
+
+		changedProperty = IsHidden
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = User
+
+	column WorkspaceId
+		dataType: string
+		lineageTag: 23a6cdd0-3439-47e6-9ad7-42e2c6c94ac3
+		sourceLineageTag: workspace_id
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+		annotation SummarizationSetBy = Automatic
+
+	/// EvaluationContext column of newer gateways
+	column EvaluationContext
+		dataType: string
+		lineageTag: 6f7d1e8c-c9ea-5430-a70d-87b125dd6e21
+		sourceLineageTag: evaluation_context
+		summarizeBy: none
+		sourceColumn: evaluation_context
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Queries = entity
+		mode: directLake
+		source
+			entityName: queries
+			schemaName: gold
+			expressionSource: 'DirectLake - Gateway Monitor'
+

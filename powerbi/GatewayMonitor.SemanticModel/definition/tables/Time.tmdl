@@ -1,0 +1,142 @@
+/// Minute-grain time dimension (UTC).
+table Time
+	lineageTag: 8956aee3-6ab9-4132-b205-4934be464a52
+	sourceLineageTag: [gold].[time_of_day]
+
+	column 'Day Period'
+		dataType: string
+		lineageTag: fd82cd5b-1f0f-436c-b65d-c993d634d475
+		sourceLineageTag: day_period
+		summarizeBy: none
+		sourceColumn: day_period
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Day Period End'
+		dataType: dateTime
+		formatString: Long Time
+		lineageTag: f5a263f0-4cdf-48ca-aa6c-9ca925ebf05c
+		sourceLineageTag: day_period_end
+		summarizeBy: none
+		sourceColumn: day_period_end
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Time
+
+	column 'Day Period Start'
+		dataType: dateTime
+		formatString: Long Time
+		lineageTag: 2072275f-7e63-4864-8188-4fdcf6195141
+		sourceLineageTag: day_period_start
+		summarizeBy: none
+		sourceColumn: day_period_start
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Time
+
+	column 'Half Hour'
+		dataType: dateTime
+		formatString: hh:nn
+		lineageTag: 716b4cfb-c913-45f5-bf71-dd68f9187cd4
+		sourceLineageTag: half_hour
+		summarizeBy: none
+		sourceColumn: half_hour
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Time
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column Hour
+		dataType: dateTime
+		formatString: hh:nn
+		lineageTag: bfc847a8-3cec-4d4d-af5f-47aa7662641e
+		sourceLineageTag: hour
+		summarizeBy: none
+		sourceColumn: hour
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Time
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column 'Hour (#)'
+		dataType: int64
+		formatString: 0
+		lineageTag: a3f95e28-db7d-420d-8e11-73b4f85a210a
+		sourceLineageTag: hour_number
+		summarizeBy: none
+		sourceColumn: hour_number
+
+		annotation SummarizationSetBy = User
+
+	column Minute
+		dataType: dateTime
+		formatString: hh:nn
+		lineageTag: b8c653d3-f94d-4a4a-b5da-76d146aeb5f2
+		sourceLineageTag: minute
+		summarizeBy: none
+		sourceColumn: minute
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Time
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column 'Minute (#)'
+		dataType: int64
+		formatString: 0
+		lineageTag: 2089d235-c13a-458a-8f62-ab4cfcbefad4
+		sourceLineageTag: minute_number
+		summarizeBy: none
+		sourceColumn: minute_number
+
+		annotation SummarizationSetBy = User
+
+	column 'Quarter Hour'
+		dataType: dateTime
+		formatString: hh:nn
+		lineageTag: 2699cdab-1831-496f-a91f-b840d1074c13
+		sourceLineageTag: quarter_hour
+		summarizeBy: none
+		sourceColumn: quarter_hour
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Time
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column TimeId
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: bf2ba27d-b5a6-4f5f-986f-16b9c507eda4
+		sourceLineageTag: time_id
+		summarizeBy: none
+		sourceColumn: time_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Time = entity
+		mode: directLake
+		source
+			entityName: time_of_day
+			schemaName: gold
+			expressionSource: 'DirectLake - Gateway Monitor'
+

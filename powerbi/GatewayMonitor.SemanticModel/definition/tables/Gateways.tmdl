@@ -1,0 +1,183 @@
+/// Gateway node dimension (one row per GatewayObjectId ever seen).
+table Gateways
+	lineageTag: 3729bd5e-2a5c-49c9-bbd6-3738b0636452
+	sourceLineageTag: [gold].[gateways]
+
+	measure '# Gateways' = COUNTROWS('Gateways')
+		formatString: #,0
+		lineageTag: e151743c-3c2e-46a5-af57-b4ef7fcab231
+
+	column Cluster
+		dataType: string
+		lineageTag: 2a1a619c-98bf-4e7c-a13a-961355a5bb55
+		sourceLineageTag: cluster_name
+		summarizeBy: none
+		sourceColumn: cluster_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Gateway
+		dataType: string
+		lineageTag: 51083ac4-c7ca-4c9b-9c95-f320d96db01a
+		sourceLineageTag: gateway_name
+		summarizeBy: none
+		sourceColumn: gateway_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column GatewayId
+		dataType: string
+		lineageTag: 62e82cca-89ff-4c7e-a5bf-6c5a719b07e9
+		sourceLineageTag: gateway_id
+		summarizeBy: none
+		sourceColumn: gateway_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column Memory
+		dataType: int64
+		formatString: #,0
+		lineageTag: 5c76d1dc-db47-41c2-b5d0-ddf6100aca51
+		sourceLineageTag: memory
+		summarizeBy: average
+		sourceColumn: memory
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = User
+
+	column NumberOfCores
+		dataType: int64
+		formatString: 0
+		lineageTag: 87793f0d-40ec-4e13-8684-f43f79d7d750
+		sourceLineageTag: number_of_cores
+		summarizeBy: none
+		sourceColumn: number_of_cores
+
+		annotation SummarizationSetBy = User
+
+	column OSArchitecture
+		dataType: string
+		lineageTag: 83275954-ca4a-4c98-b5cf-3ceaa268ab9c
+		sourceLineageTag: os_architecture
+		summarizeBy: none
+		sourceColumn: os_architecture
+
+		annotation SummarizationSetBy = Automatic
+
+	column OSVersion
+		dataType: string
+		lineageTag: 4ee0e75b-0ab8-432c-b0e3-f82c8444bb43
+		sourceLineageTag: os_version
+		summarizeBy: none
+		sourceColumn: os_version
+
+		annotation SummarizationSetBy = Automatic
+
+	column Server
+		dataType: string
+		lineageTag: 79e8b910-f5df-43b3-97bd-57d039644861
+		sourceLineageTag: server_name
+		summarizeBy: none
+		sourceColumn: server_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Version
+		dataType: string
+		lineageTag: 75d7aeed-7fe5-419d-8ce8-df281879e23a
+		sourceLineageTag: version
+		summarizeBy: none
+		sourceColumn: version
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Gateway cluster id
+	column 'Cluster Id'
+		dataType: string
+		lineageTag: 49eab9a3-f377-5a24-90ea-84ba4e41a5c1
+		sourceLineageTag: cluster_id
+		summarizeBy: none
+		sourceColumn: cluster_id
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Environment label
+	column Environment
+		dataType: string
+		lineageTag: b47d9ce3-2cde-5342-a527-e9c5146fa4f2
+		sourceLineageTag: environment
+		summarizeBy: none
+		sourceColumn: environment
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Server id
+	column 'Server Id'
+		dataType: string
+		lineageTag: 75b9b03f-56d8-5f0a-a744-6385b488dda6
+		sourceLineageTag: server_id
+		summarizeBy: none
+		sourceColumn: server_id
+
+		annotation SummarizationSetBy = Automatic
+
+	/// SHA-256(server_id, gateway_id) truncated
+	column 'Installation Id'
+		dataType: string
+		lineageTag: 70478594-612d-5bee-ae4e-adb572e9b860
+		sourceLineageTag: installation_id
+		summarizeBy: none
+		sourceColumn: installation_id
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Latest collection agent version
+	column 'Agent Version'
+		dataType: string
+		lineageTag: c543116a-5432-5d88-9d8b-628b3c0f63e2
+		sourceLineageTag: agent_version
+		summarizeBy: none
+		sourceColumn: agent_version
+
+		annotation SummarizationSetBy = Automatic
+
+	/// First event or upload
+	column 'First Seen (UTC)'
+		dataType: dateTime
+		formatString: yyyy-mm-dd hh:nn:ss
+		lineageTag: 18905496-397c-5b17-9d50-c4304a9db40b
+		sourceLineageTag: first_seen_utc
+		summarizeBy: none
+		sourceColumn: first_seen_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Last event or upload
+	column 'Last Seen (UTC)'
+		dataType: dateTime
+		formatString: yyyy-mm-dd hh:nn:ss
+		lineageTag: 885b0bfc-8e4b-50dd-8b2c-69313dcbc72e
+		sourceLineageTag: last_seen_utc
+		summarizeBy: none
+		sourceColumn: last_seen_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Active / Inactive (no data for gold.inactiveAfterDays)
+	column Status
+		dataType: string
+		lineageTag: fbb55d8a-65ff-5163-bc0c-1eadcd7ebfaf
+		sourceLineageTag: status
+		summarizeBy: none
+		sourceColumn: status
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Gateways = entity
+		mode: directLake
+		source
+			entityName: gateways
+			schemaName: gold
+			expressionSource: 'DirectLake - Gateway Monitor'
+

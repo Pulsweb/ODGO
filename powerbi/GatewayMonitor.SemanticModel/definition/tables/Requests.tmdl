@@ -1,0 +1,152 @@
+/// Requests (root activities) derived from logs and queries.
+table Requests
+	lineageTag: 6e7d89f6-3280-4704-bbcd-0a220e1388b5
+	sourceLineageTag: [gold].[requests]
+
+	measure '# Requests' = CALCULATE(COUNTROWS('Requests'), USERELATIONSHIP('Calendar'[Date], 'Requests'[Date]))
+		formatString: #,0
+		lineageTag: 7d58f4d3-9f5a-42cf-af92-c7d19cf03b05
+
+	measure 'Request Start' =
+			
+			IF ([# Logs] > 0 || [# Queries] > 0, MIN('Requests'[Start]))
+			/*CALCULATE(
+			MIN('Gateway Requests'[Start])
+			, USERELATIONSHIP('Calendar'[Date], 'Gateway Requests'[Date])
+			, USERELATIONSHIP('Time'[TimeId], 'Gateway Requests'[TimeId])
+			)*/
+			/*
+			var gq = MINX('Gateway Queries', CONVERT(FORMAT([Date], "yyyy-MM-dd") & " " & FORMAT([Time], "HH:mm:ss"), DATETIME))
+			var gl = MINX('Gateway Logs', CONVERT(FORMAT([Date], "yyyy-MM-dd") & " " & FORMAT([Time], "HH:mm:ss"), DATETIME))
+			return  COALESCE(min(gl, gq), gl, gq)
+			*/
+		formatString: General Date
+		lineageTag: 22cc04e5-f149-4995-819e-6e5de2a050d1
+
+	measure 'Request End' =
+			
+			IF ([# Logs] > 0 || [# Queries] > 0, MAX('Requests'[End]))
+			/*
+			CALCULATE(
+			MAX('Gateway Requests'[End])
+			, USERELATIONSHIP('Calendar'[Date], 'Gateway Requests'[Date])
+			, USERELATIONSHIP('Time'[TimeId], 'Gateway Requests'[TimeId])
+			)
+			*/
+			/*
+			var gq = MAXX('Gateway Queries', CONVERT(FORMAT([Date], "yyyy-MM-dd") & " " & FORMAT([Time], "HH:mm:ss"), DATETIME))
+			var gl = MAXX('Gateway Logs', CONVERT(FORMAT([Date], "yyyy-MM-dd") & " " & FORMAT([Time], "HH:mm:ss"), DATETIME))
+			return  COALESCE(max(gl, gq), gl, gq)
+			*/
+		formatString: yyyy-mm-dd hh:nn:ss
+		lineageTag: 0a9cab9d-bf4b-4aca-adc4-3e508bf16fc1
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	measure 'Request Duration (s)' =
+			
+			var ri = SELECTEDVALUE('Requests'[RequestId])
+			return if (ISBLANK(ri) || ri = "00000000-0000-0000-0000-000000000000", BLANK(),
+			 SUM(Requests[Duration])
+			// var rs = [Request Start]
+			// var re = [Request End]
+			// return if (rs <> BLANK() && re <> BLANK(), DATEDIFF(rs, re, SECOND))
+			)
+		formatString: #,0
+		lineageTag: daa3e14c-4252-4999-87a8-a4f5d20f7234
+
+	measure 'Avg. Request Duration (s)' = AVERAGEX('Requests', [Request Duration (s)])
+		lineageTag: d7706eb0-324f-424b-8d02-9d8bfa27158f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Request Query Duration (s)' =
+			
+			var ri = SELECTEDVALUE('Requests'[RequestId])
+			return if (ISBLANK(ri) || ri = "00000000-0000-0000-0000-000000000000", BLANK(),
+			 SUM(Requests[DurationQueries]))
+		formatString: #,0
+		lineageTag: c6225538-933e-4f17-90d8-b3da385ca27d
+
+	column Date
+		dataType: dateTime
+		isHidden
+		formatString: yyyy-mm-dd
+		lineageTag: 6b5f57a8-bdc8-4c80-a7f7-31dfe0e7c848
+		sourceLineageTag: date
+		summarizeBy: none
+		sourceColumn: date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column Duration
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 05434992-52ea-4596-a012-64582303d8fd
+		sourceLineageTag: duration_s
+		summarizeBy: sum
+		sourceColumn: duration_s
+
+		annotation SummarizationSetBy = Automatic
+
+	column DurationQueries
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 1b14f7d0-64fd-41fa-acf1-930a92218a3c
+		sourceLineageTag: duration_queries_s
+		summarizeBy: sum
+		sourceColumn: duration_queries_s
+
+		annotation SummarizationSetBy = Automatic
+
+	column End
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 4e8316fd-a5fb-40ec-b1c9-8c1774ac7b44
+		sourceLineageTag: request_end
+		summarizeBy: none
+		sourceColumn: request_end
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Has Queries (Y/N)'
+		dataType: string
+		lineageTag: 27e2c064-7da3-4dca-a5a1-39169a1b7690
+		sourceLineageTag: has_queries
+		summarizeBy: none
+		sourceColumn: has_queries
+
+		annotation SummarizationSetBy = Automatic
+
+	column RequestId
+		dataType: string
+		lineageTag: b3e5e417-9ed1-4be0-8f5c-6efa1cf715e2
+		sourceLineageTag: request_id
+		summarizeBy: none
+		sourceColumn: request_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column Start
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 8ef9fcc6-80c0-4ed3-b68f-a29ac3da0249
+		sourceLineageTag: request_start
+		summarizeBy: none
+		sourceColumn: request_start
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Requests = entity
+		mode: directLake
+		source
+			entityName: requests
+			schemaName: gold
+			expressionSource: 'DirectLake - Gateway Monitor'
+

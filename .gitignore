@@ -1,0 +1,16 @@
+# Secrets: never commit a client secret or a key
+client-secret.dat
+*.pfx
+*.p12
+*.pem
+*.key
+
+# Power BI Desktop local files of the PBIP project
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
