@@ -34,7 +34,7 @@
     Microsoft Entra tenant id of the app registration.
 
 .PARAMETER ClientId
-    Application (client) id of the app registration.
+    Application (client) id of the app registration: a GUID, not the client secret value (you're prompted for it).
 
 .PARAMETER ClientSecret
     Client secret value. When omitted you are prompted for it (input hidden) if no secret is stored yet.
@@ -80,17 +80,28 @@
 #>
 [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'ClientSecret')]
 param(
-    [ValidatePattern('^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$')][string] $WorkspaceId,
-    [ValidatePattern('^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$')][string] $LakehouseId,
+    # The error messages don't repeat the rejected value: a client secret typed by mistake must not be printed.
+    [ValidatePattern('^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$',
+        ErrorMessage = 'Expected the workspace ID printed by the setup notebook (a GUID).')]
+    [string] $WorkspaceId,
+    [ValidatePattern('^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$',
+        ErrorMessage = 'Expected the lakehouse ID printed by the setup notebook (a GUID).')]
+    [string] $LakehouseId,
     [Parameter(ParameterSetName = 'ClientSecret')]
-    [ValidatePattern('^([0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}|[A-Za-z0-9.-]+\.[A-Za-z]{2,})$')][string] $TenantId,
+    [ValidatePattern('^([0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}|[A-Za-z0-9.-]+\.[A-Za-z]{2,})$',
+        ErrorMessage = 'Expected the Directory (tenant) ID (a GUID) or a domain such as contoso.onmicrosoft.com.')]
+    [string] $TenantId,
     [Parameter(ParameterSetName = 'ClientSecret')]
-    [ValidatePattern('^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$')][string] $ClientId,
+    [ValidatePattern('^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$',
+        ErrorMessage = 'Expected the Application (client) ID of the app registration, a GUID shown on its Overview page, not the client secret value: the installer asks for the secret, with the input hidden.')]
+    [string] $ClientId,
     [Parameter(ParameterSetName = 'ClientSecret')][securestring] $ClientSecret,
     [Parameter(ParameterSetName = 'ClientSecret')][switch] $UpdateSecret,
     [Parameter(Mandatory, ParameterSetName = 'ManagedIdentity')][switch] $ManagedIdentity,
     [Parameter(ParameterSetName = 'ManagedIdentity')]
-    [ValidatePattern('^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$')][string] $ManagedIdentityClientId,
+    [ValidatePattern('^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$',
+        ErrorMessage = 'Expected the client ID of the user-assigned managed identity (a GUID).')]
+    [string] $ManagedIdentityClientId,
     [AllowEmptyString()][string] $ProxyUrl,
     [ValidateRange(5, 1440)][int] $IntervalMinutes = 15,
     [string] $TaskUser = 'SYSTEM',

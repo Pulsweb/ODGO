@@ -71,7 +71,8 @@ full guide, with prerequisites and tenant settings, is [docs/setup.md](docs/setu
    semantic model and reports, starts the first ingestion in the background, then prints the install command with the
    IDs of the workspace, the lakehouse and your tenant.
 4. **Install the agent on each gateway server:** paste the printed lines into PowerShell run as administrator, after
-   replacing `<client-id>` with the Application (client) ID of the app registration:
+   replacing `<client-id>` with the Application (client) ID of the app registration (a GUID; the installer asks for
+   the secret value):
 
    ```powershell
    Set-Location $env:TEMP

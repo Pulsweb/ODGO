@@ -70,7 +70,7 @@ The notebook downloads the ODGO version set in `source` (by default the `main` b
 
 Open PowerShell **as administrator** on the gateway server (Windows PowerShell or PowerShell 7: the last line starts
 the installer with PowerShell 7) and paste the lines printed by the setup notebook, after replacing `<client-id>` with
-the Application (client) ID of your app registration:
+the Application (client) ID of your app registration (a GUID, not the secret value):
 
 ```powershell
 Set-Location $env:TEMP
