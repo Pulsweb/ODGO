@@ -191,15 +191,21 @@ function Set-FolderAccess {
 
 function Resolve-TaskPowerShell {
     <# pwsh.exe for the scheduled task. The MSIX package (Microsoft Store, or winget since PowerShell 7.6) can't run as
-       SYSTEM and its folder changes with each update, so the MSI (or ZIP) package is needed. #>
-    param([string] $PowerShellHome, [string] $ProgramFiles)
+       SYSTEM and its folder changes with each update, so the MSI (or ZIP) package is needed. PowerShell 7.6 is the last
+       version with an MSI package. msiexec installs it next to the MSIX package; winget doesn't, because it sees
+       PowerShell as already installed. #>
+    param([string] $PowerShellHome, [string] $ProgramFiles,
+        [version] $Version = [version]::new($PSVersionTable.PSVersion.Major, $PSVersionTable.PSVersion.Minor, $PSVersionTable.PSVersion.Patch))
     if ($PowerShellHome -notmatch '\\WindowsApps\\') { return Join-Path $PowerShellHome 'pwsh.exe' }
     $msi = Join-Path $ProgramFiles 'PowerShell\7\pwsh.exe'
     if ([System.IO.File]::Exists($msi)) { return $msi }
-    throw ('This PowerShell 7 is the MSIX package (Microsoft Store, or winget since PowerShell 7.6), which the scheduled task ' +
-        "can't run as SYSTEM. Install the MSI package (winget install --id Microsoft.PowerShell --source winget --installer-type wix, " +
-        'or see https://learn.microsoft.com/powershell/scripting/install/install-powershell-on-windows#install-the-msi-package), ' +
-        'then run this command again: nothing was changed.')
+    $msiVersion = if ($Version.Major -eq 7 -and $Version.Minor -le 6) { "$Version" } else { '7.6.6' }
+    $file = "PowerShell-$msiVersion-win-x64.msi"
+    throw ("This PowerShell 7 is the MSIX package (Microsoft Store, or winget since PowerShell 7.6), which the scheduled task can't " +
+        "run as SYSTEM. Nothing was changed. Install the MSI package of PowerShell $msiVersion next to it (Microsoft Update keeps it " +
+        "up to date), then run this command again:`n" +
+        "  Invoke-WebRequest https://github.com/PowerShell/PowerShell/releases/download/v$msiVersion/$file -OutFile $file -UseBasicParsing`n" +
+        "  Start-Process msiexec.exe -Wait -ArgumentList '/package $file /quiet ADD_PATH=1 USE_MU=1 ENABLE_MU=1'")
 }
 
 $taskPowerShell = Resolve-TaskPowerShell -PowerShellHome $PSHOME -ProgramFiles $env:ProgramFiles

@@ -16,7 +16,7 @@ Upgrades run steps 3 and 4 again: see [Upgrade](#upgrade).
 |---|---|
 | Fabric workspace | A workspace assigned to a Fabric capacity (F SKU or trial), preferably used only for ODGO, and the Admin or Member role on it |
 | Fabric tenant settings | *Users can access data stored in OneLake with apps external to Fabric* (OneLake settings) and *Service principals can use Fabric APIs* (Developer settings). Both can be limited to a security group that contains the agent identity. See [tenant settings](https://learn.microsoft.com/fabric/admin/about-tenant-settings) |
-| Gateway servers | Windows, On-premises data gateway in standard mode, PowerShell 7.2 or later installed with the [MSI package](https://learn.microsoft.com/powershell/scripting/install/install-powershell-on-windows#install-the-msi-package) (the MSIX package, which the Microsoft Store and winget install by default, can't run as SYSTEM), outbound HTTPS (443) to `login.microsoftonline.com` and `onelake.dfs.fabric.microsoft.com` |
+| Gateway servers | Windows, On-premises data gateway in standard mode, PowerShell 7 installed with the [MSI package](https://learn.microsoft.com/powershell/scripting/install/install-powershell-on-windows#install-the-msi-package), which exists up to version 7.6 (the MSIX package, which the Microsoft Store and winget install by default, can't run as SYSTEM: see [step 4](#4-install-the-agent-on-each-gateway-server)), outbound HTTPS (443) to `login.microsoftonline.com` and `onelake.dfs.fabric.microsoft.com` |
 | Reports | The *Logs* page of each report uses the AppSource *Text Filter* visual, which your tenant must allow |
 
 ## 1. Create an identity for the agents
@@ -102,10 +102,16 @@ starts about 2 minutes later. The server appears on the *Ingestion Health* page 
 Optional parameters: `-ProxyUrl` (outbound proxy), `-IntervalMinutes`, `-TaskUser` (a group managed service account
 instead of SYSTEM) and `-SkipTest`. Run `Get-Help $installer -Detailed` for details.
 
-**`pwsh` isn't recognized, or the installer says that PowerShell 7 is the MSIX package:** install PowerShell 7 with
-the [MSI package](https://learn.microsoft.com/powershell/scripting/install/install-powershell-on-windows#install-the-msi-package)
-(on Windows Server 2025: `winget install --id Microsoft.PowerShell --source winget --installer-type wix`), open a new
-PowerShell window and paste the lines again.
+**`pwsh` isn't recognized, or the installer says that PowerShell 7 is the MSIX package:** install PowerShell 7.6 with
+its MSI package, the last version that has one. It installs next to the MSIX package (winget can't: it sees PowerShell
+as already installed), and Microsoft Update keeps it up to date:
+
+```powershell
+Invoke-WebRequest https://github.com/PowerShell/PowerShell/releases/download/v7.6.6/PowerShell-7.6.6-win-x64.msi -OutFile PowerShell-7.6.6-win-x64.msi -UseBasicParsing
+Start-Process msiexec.exe -Wait -ArgumentList '/package PowerShell-7.6.6-win-x64.msi /quiet ADD_PATH=1 USE_MU=1 ENABLE_MU=1'
+```
+
+Then paste the install lines again, in a new PowerShell window if `pwsh` wasn't recognized.
 
 **Server without internet access:** download the zip on another computer, copy it to the server, extract it, unblock
 the files (`Get-ChildItem -Recurse | Unblock-File`) and run `gateway-agent\Install-Agent.ps1` with PowerShell 7 and the
