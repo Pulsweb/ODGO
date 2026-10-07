@@ -24,7 +24,7 @@ First public version of ODGO (On-premises Data Gateway Observability), planned a
     registers the scheduled task and tests the connection;
   * `Invoke-GatewayLogCollection.ps1 -Test` and `-PlanOnly`, multiple gateways per server, telemetry outbox.
 * **Lakehouse processing:** `nb_gwmon_lib` (table contracts and logic), `nb_gwmon_ingest` (Bronze, Silver and Gold,
-  every 6 hours) and `nb_gwmon_maintenance` (retention, `OPTIMIZE`/`VACUUM` and validation, once a day), with manifest
+  every 2 hours) and `nb_gwmon_maintenance` (retention, `OPTIMIZE`/`VACUUM` and validation, once a day), with manifest
   and checksum validation, quarantine, redaction, schema-drift capture and ingestion-health tables.
 * **Semantic model** *ODGO Model* in TMDL, Direct Lake on OneLake: every original table, column, measure and
   relationship, plus five ingestion-health tables, 10 relationships and 28 *Ingestion Health* measures (67 measures in

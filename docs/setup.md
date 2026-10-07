@@ -59,7 +59,7 @@ manage the access to the workspace.
    * creates the *ODGO Model* semantic model (Direct Lake) and two reports on it: *ODGO - Gateway
      Observability*, which opens on a home page with the analysis paths, and *Gateway Monitor*, with the pages of the
      original pbigtwmonitor report;
-   * schedules `nb_gwmon_ingest` every 6 hours and `nb_gwmon_maintenance` once a day;
+   * schedules `nb_gwmon_ingest` every 2 hours and `nb_gwmon_maintenance` once a day;
    * starts a first run of `nb_gwmon_ingest`, which continues in the background for a few minutes: it creates the
      tables, the landing folder and `processing.json`, then frames the semantic model.
 4. The last cell prints the PowerShell lines for step 4, with the IDs of your workspace, lakehouse and tenant.
@@ -97,7 +97,7 @@ The installer:
 
 The agent keeps its state in the `state` subfolder and writes its logs in the `logs` subfolder. The first upload
 starts about 2 minutes later. The server appears on the *Ingestion Health* page of the reports after the next
-`nb_gwmon_ingest` run, within 6 hours by default. To see it sooner, run `nb_gwmon_ingest` yourself from the workspace.
+`nb_gwmon_ingest` run, within 2 hours by default. To see it sooner, run `nb_gwmon_ingest` yourself from the workspace.
 
 Optional parameters: `-ProxyUrl` (outbound proxy), `-IntervalMinutes`, `-TaskUser` (a group managed service account
 instead of SYSTEM) and `-SkipTest`. Run `Get-Help $installer -Detailed` for details.

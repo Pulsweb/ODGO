@@ -13,7 +13,7 @@
 
 # # nb_gwmon_ingest — landing → Bronze → Silver → Gold
 # 
-# Scheduled by the setup notebook (every 6 hours by default). Each run:
+# Scheduled by the setup notebook (every 2 hours by default). Each run:
 # 
 # 1. **Setup** — creates the `bronze`, `silver`, `gold` and `ops` schemas and tables when they are missing or when the
 #    table contracts changed, the landing folders and, if absent, `Files/gateway-monitor/config/processing.json`.

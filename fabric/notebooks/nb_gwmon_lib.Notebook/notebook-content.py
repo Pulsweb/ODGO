@@ -170,8 +170,9 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "retiredServers": [],
         "inactiveAfterDays": 14,
         "expectedUploadIntervalMinutes": 15,
-        # The report compares the last processed heartbeat with the current time: with nb_gwmon_ingest running every
-        # 6 hours, a server is Late after 8 hours without a processed heartbeat and Missing after 24 hours.
+        # The reports compare the last processed heartbeat with the current time: a server is Late after 8 hours without
+        # a processed heartbeat and Missing after 24 hours. Both must stay longer than the interval of nb_gwmon_ingest
+        # (2 hours by default).
         "lateAfterMinutes": 480,
         "missingAfterMinutes": 1440,
         "ingestionWindowDays": 30,

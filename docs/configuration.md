@@ -16,7 +16,7 @@ The defaults suit most installations.
 | Parameter | Default | Description |
 |---|---|---|
 | `source` | `main` branch archive on GitHub | ODGO version to install: the URL of a repository `.zip` (branch or release), or a `.zip` file or repository folder readable by the notebook |
-| `ingest_interval_minutes` | `360` | How often `nb_gwmon_ingest` runs, in minutes (every 6 hours). Above 360, also raise `gold.lateAfterMinutes` (see [processing configuration](#processing-configuration-processingjson)) |
+| `ingest_interval_minutes` | `120` | How often `nb_gwmon_ingest` runs, in minutes (every 2 hours). Above 360, also raise `gold.lateAfterMinutes` (see [processing configuration](#processing-configuration-processingjson)) |
 
 The setup also starts a first run of `nb_gwmon_ingest`, which creates the tables and frames the semantic model.
 `nb_gwmon_maintenance` runs once a day, between two runs of `nb_gwmon_ingest`. The schedules can also be changed later
