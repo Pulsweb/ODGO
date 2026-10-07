@@ -110,6 +110,16 @@ the files (`Get-ChildItem -Recurse | Unblock-File`) and run `gateway-agent\Insta
 same parameters. The server still needs HTTPS access to Microsoft Entra ID and OneLake, directly or through
 `-ProxyUrl`.
 
+**Check the scheduled task:** open **Task Scheduler** > **Task Scheduler Library** > **ODGO**. The task *Collect
+Gateway Logs* runs as SYSTEM, and its trigger repeats every 15 minutes. After its first run, the **Last Run Result**
+column shows *The operation completed successfully. (0x0)*; other values are the agent exit codes listed in
+[operations.md](operations.md#agent). To change the interval, edit the trigger (**Triggers** > **Edit** > **Repeat
+task every**) or run `pwsh -File "$env:ProgramFiles\ODGO\Install-Agent.ps1" -IntervalMinutes 30` (with your agent
+folder). Upgrades keep the interval. Keep it at 60 minutes or less: otherwise the report can show the server as
+*Late*.
+
+![The Collect Gateway Logs task in Task Scheduler](images/task-scheduler.png)
+
 ## Share the report
 
 The semantic model reads the lakehouse with the identity of each report reader (single sign-on), so readers need read
