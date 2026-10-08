@@ -93,15 +93,6 @@ You deploy ODGO from Fabric with one notebook, then install the agent on each ga
 command. It takes about 15 minutes for the first server, mostly copy and paste. The [setup guide](docs/setup.md)
 details each step.
 
-**Before you start**, check that you have:
-
-* a Fabric workspace on a capacity (F SKU or trial), with the Admin or Member role. Use a workspace dedicated to ODGO;
-* the right to create an app registration in Microsoft Entra ID, unless your gateways run on Azure VMs or Azure
-  Arc-enabled servers, which can use their managed identity;
-* administrator access to each gateway server, and outbound HTTPS from the server to Microsoft Entra ID and OneLake.
-  Nothing has to be installed first;
-* the two Fabric tenant settings that the agents need ([prerequisites](docs/setup.md#prerequisites)).
-
 ### 1. Create an identity for the agents
 
 In the [Microsoft Entra admin center](https://entra.microsoft.com), create an **app registration** and a **client
@@ -188,30 +179,27 @@ together.
 | | [Microsoft gateway performance monitoring](https://learn.microsoft.com/data-integration/gateway/service-gateway-performance) | [pbigtwmonitor](https://github.com/RuiRomano/pbigtwmonitor) | [Fabric Platform Monitoring](https://github.com/microsoft/fabric-toolbox/tree/main/monitoring/fabric-platform-monitoring) | **ODGO** (this repository) |
 |---|---|---|---|---|
 | **Scope** | Performance logs of one gateway, read locally by a Power BI template (`.pbit`) | Logs and reports of several gateway clusters, centralized | The whole Fabric platform (capacity, activity, inventory), with an on-premises data gateway module, centralized | Logs, performance reports and metadata of on-premises data gateways, and the health of their collection, centralized |
-| **Real time** | No | No: scripts scheduled hourly or daily | Yes: gateway heartbeat and reports streamed through Eventstreams | No: agent every 15 minutes, processing every 2 hours by default |
+| **Real time** | No | No: scripts scheduled hourly or daily | ⭐ Yes, recommended by Microsoft: gateway heartbeat and reports streamed through Eventstreams | No: agent every 15 minutes, processing every 2 hours by default |
 | **History** | The files that the gateway keeps (10 of each kind by default) | Yes | Yes | Yes, with a retention per layer |
 | **Storage and analysis** | Gateway log folder and a Power BI template | Azure Data Lake Storage Gen2 and an import model (predates Fabric) | Eventhouse and Real-Time Dashboard; log files also kept in a lakehouse | Lakehouse (Bronze, Silver and Gold Delta tables) and a Direct Lake semantic model |
 | **Status** | Microsoft documentation; the feature is in public preview | **Archived**; its author recommends Fabric Platform Monitoring | Solution accelerator maintained in [microsoft/fabric-toolbox](https://github.com/microsoft/fabric-toolbox), not an official Microsoft product | New community project |
+
+> [!TIP]
+> ⭐ **For real-time observability, Microsoft recommends
+> [Fabric Platform Monitoring](https://github.com/microsoft/fabric-toolbox/tree/main/monitoring/fabric-platform-monitoring).**
+> Its gateway module can also be deployed from
+> [Fabric Jumpstart](https://jumpstart.fabric.microsoft.com/catalog/fpm-gateway-monitoring/).
 
 Microsoft's template analyzes one gateway quickly. pbigtwmonitor is the historical community reference for
 centralized gateway log analysis; ODGO reuses its semantic model and report. Fabric Platform Monitoring covers
 near-real-time monitoring of the whole platform, while ODGO focuses on the long-term analysis of gateway logs: both can
 run side by side.
 
-**Include the cost in the decision.** The Microsoft template only needs Power BI Desktop, and pbigtwmonitor an Azure
-storage account. Fabric Platform Monitoring and ODGO need a Fabric capacity, which they use differently: streaming
-items such as Eventstreams and an Eventhouse consume capacity continuously while they ingest, whereas ODGO's notebooks
-consume it only during their scheduled runs (every 2 hours by default, see
-[`ingest_interval_minutes`](docs/configuration.md#setup-notebook-parameters)) and its data stays in OneLake storage.
-For every option, consumption grows with the number of gateways and the volume of their logs: measure it with the
-[Capacity Metrics app](https://learn.microsoft.com/fabric/enterprise/metrics-app) before you choose a capacity size.
-Report readers also need a Power BI Pro or Premium Per User license, unless the workspace is on an F64 or larger
-capacity.
-
 ## Limitations
 
-* **Not real time.** Data arrives in scheduled batches, processed every 2 hours by default. Use Fabric Platform
-  Monitoring for near-real-time operational monitoring.
+* **Not real time.** Data arrives in scheduled batches, processed every 2 hours by default. For real-time
+  observability, use Fabric Platform Monitoring, which Microsoft recommends
+  ([Monitoring solution landscape](#monitoring-solution-landscape)).
 * **Gateway-side data only**, and history starts at installation: only logs still on the servers can be backfilled.
 * **Undocumented log formats.** Microsoft doesn't formally document the gateway log formats, which can change with
   gateway updates. The parsers follow the formats handled by pbigtwmonitor and are tested against synthetic samples;
@@ -276,8 +264,6 @@ ODGO stands on the shoulders of earlier community work.
 * **Microsoft documentation:** [gateway performance monitoring](https://learn.microsoft.com/data-integration/gateway/service-gateway-performance),
   [gateway log files](https://learn.microsoft.com/data-integration/gateway/service-gateway-log-files) and the
   [Microsoft Fabric documentation](https://learn.microsoft.com/fabric/).
-* Community articles about gateway monitoring, such as the
-  [On-premises data gateway monitoring series](https://medium.com/microsoftazure/on-premises-data-gateway-monitoring-series-part-2-cpu-counters-99631a0a5b17).
 
 ## License
 
