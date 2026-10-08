@@ -50,7 +50,7 @@ manage the access to the workspace.
 
 ## 3. Run the setup notebook
 
-1. Download [fabric/ODGO_Setup.ipynb](../fabric/ODGO_Setup.ipynb).
+1. Download [fabric/ODGO_Setup.ipynb](../fabric/ODGO_Setup.ipynb) (on GitHub, select **Download raw file**).
 2. In the Fabric workspace, select **Import** > **Notebook** > **From this computer** and select the file.
 3. Open the notebook and select **Run all**. You don't need to change its parameters
    ([configuration.md](configuration.md#setup-notebook-parameters)). In a minute or two the notebook:
@@ -61,7 +61,7 @@ manage the access to the workspace.
      original pbigtwmonitor report;
    * schedules `nb_gwmon_ingest` every 2 hours and `nb_gwmon_maintenance` once a day;
    * starts a first run of `nb_gwmon_ingest`, which continues in the background for a few minutes: it creates the
-     tables, the landing folder and `processing.json`, then frames the semantic model.
+     tables, the landing folder and `processing.json`, then refreshes the semantic model.
 4. The last cell prints the PowerShell lines for step 4, with the IDs of your workspace, lakehouse and tenant.
 
 The notebook downloads the ODGO version set in `source` (by default the `main` branch on GitHub).
@@ -93,15 +93,14 @@ The installer:
 
 * creates the `-InstallPath` folder, which only SYSTEM and Administrators can open because the agent runs as SYSTEM
   and the folder holds the client secret, and copies the agent into it;
-* writes `config\config.json` in this folder and stores the client secret encrypted with DPAPI next to it;
+* writes `config\config.json` in this folder and stores the client secret encrypted with DPAPI next to it. The agent
+  keeps its state in the `state` subfolder and writes its logs in the `logs` subfolder;
 * registers the scheduled task `\ODGO\Collect Gateway Logs`, which runs the agent with Windows PowerShell every 15
-  minutes as SYSTEM;
+  minutes as SYSTEM, the first time a few minutes after the installation;
 * tests the configuration, gateway discovery, authentication and write access to OneLake. Each check prints *PASS*,
   *WARNING* or *FAIL*, with a fix for each warning or failure.
 
-The agent keeps its state in the `state` subfolder and writes its logs in the `logs` subfolder. The first upload
-starts about 2 minutes later. The server appears on the *Ingestion Health* page of the reports after the next
-`nb_gwmon_ingest` run, within 2 hours by default. To see it sooner, run `nb_gwmon_ingest` yourself from the workspace.
+![Install-Agent.ps1 in Windows PowerShell: it asks for the client secret, installs the agent and passes every check](images/install-agent.png)
 
 Optional parameters: `-ProxyUrl` (outbound proxy), `-IntervalMinutes`, `-TaskUser` (a group managed service account
 instead of SYSTEM) and `-SkipTest`. Run `Get-Help $installer -Detailed` for details.
@@ -115,25 +114,27 @@ same parameters. The server still needs HTTPS access to Microsoft Entra ID and O
 Gateway Logs* runs as SYSTEM, and its trigger repeats every 15 minutes. After its first run, the **Last Run Result**
 column shows *The operation completed successfully. (0x0)*. Other values are agent exit codes: `1` partially
 succeeded (the next run continues), `2` failed, `3` configuration error, `4` another run is still in progress; the
-agent log in the `logs` subfolder has the details. To change the interval, edit the trigger (**Triggers** > **Edit** >
-**Repeat task every**) or run `powershell -ExecutionPolicy RemoteSigned -File "$env:ProgramFiles\ODGO\Install-Agent.ps1" -IntervalMinutes 30`
-(with your agent folder). Upgrades keep the interval. Keep it at 60 minutes or less: otherwise the reports can show
-the server as *Late*.
+agent log in the `logs` subfolder has the details.
 
 ![The Collect Gateway Logs task in Task Scheduler](images/task-scheduler.png)
 
-## Share the reports
+**Change the interval:** edit the trigger (**Triggers** > **Edit** > **Repeat task every**) or run
+`powershell -ExecutionPolicy RemoteSigned -File "$env:ProgramFiles\ODGO\Install-Agent.ps1" -IntervalMinutes 30` (with
+your agent folder). Upgrades keep the interval. Keep it at 60 minutes or less: otherwise the reports can show the
+server as *Late*.
 
-The semantic model reads the lakehouse with the identity of each report reader (single sign-on), so readers need read
-access to the lakehouse data. To let readers open the reports without that access, bind the model to a fixed
-identity:
+**See the first data:** the server appears on the *Ingestion Health* page of the reports after the next
+`nb_gwmon_ingest` run, within 2 hours by default. To check the whole chain and see the data right away:
 
-1. Open the settings of the *ODGO Model* semantic model > **Gateway and cloud connections**.
-2. Create a cloud connection for the OneLake data source with an identity that can read the lakehouse (for example
-   the [workspace identity](https://learn.microsoft.com/fabric/security/workspace-identity) or a service principal),
-   with single sign-on turned off, and map the data source to it.
-
-Then give readers the Viewer role on the workspace, or share the reports with them.
+1. On the gateway server, in Task Scheduler, select the *Collect Gateway Logs* task, then **Run** under **Selected
+   Item** in the **Actions** pane (or run `Start-ScheduledTask -TaskPath '\ODGO\' -TaskName 'Collect Gateway Logs'`
+   as administrator). The first run uploads the log files written in the last 7 days, which can take a few minutes.
+   Refresh the list (F5): when the task is back to *Ready*, its **Last Run Result** is *The operation completed
+   successfully. (0x0)*.
+2. In the Fabric workspace, open the `nb_gwmon_ingest` notebook and select **Run all**. It processes the uploads in a
+   few minutes, then refreshes the semantic model.
+3. Open the *ODGO - Gateway Observability* report, or select **Refresh** if it's already open: the server appears on
+   the *Ingestion Health* page, and the other pages show the data of its gateway.
 
 ## Upgrade
 
@@ -142,11 +143,12 @@ Then give readers the Viewer role on the workspace, or share the reports with th
    asks you to import a newer setup notebook, or if it stops because the download doesn't look like an ODGO
    repository, delete the notebook, import the latest [fabric/ODGO_Setup.ipynb](../fabric/ODGO_Setup.ipynb) and run
    it.
-2. On each gateway server, run the `Install-Agent.ps1` of the new version without parameters (the download lines
-   of step 4, then `powershell -NoProfile -ExecutionPolicy RemoteSigned -File $installer`). It finds the existing
-   installation, replaces the agent files in its folder and keeps the configuration, secret, state and scheduled task.
-   A scheduled task that an earlier version set up with PowerShell 7 switches to Windows PowerShell: PowerShell 7 isn't
-   needed anymore.
+2. On each gateway server, open PowerShell as administrator and run the `Install-Agent.ps1` of the new version
+   without parameters: the download lines of step 4, then
+   `powershell -NoProfile -ExecutionPolicy RemoteSigned -File $installer`. It finds the existing installation,
+   replaces the agent files in its folder and keeps the configuration, secret, state and scheduled task. A scheduled
+   task that an earlier version set up with PowerShell 7 switches to Windows PowerShell: PowerShell 7 isn't needed
+   anymore.
 
 ## Uninstall
 

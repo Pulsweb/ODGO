@@ -161,7 +161,7 @@ run side by side.
   regex rules, and you can add rules. Nothing is sent anywhere else.
 * **Permissions.** The agent identity is a Contributor of the workspace, so it can also read the processed data: use
   a workspace dedicated to ODGO. Report readers need the Viewer role and read access to the lakehouse data, unless
-  you bind the model to a fixed identity ([docs/setup.md](docs/setup.md#share-the-reports)).
+  you [bind the model to a fixed identity](https://learn.microsoft.com/fabric/fundamentals/direct-lake-security-integration#connection-configuration).
 * **Secrets.** The client secret is typed on each server, never written to a configuration file and stored
   encrypted with DPAPI in a folder that only SYSTEM and Administrators can open. Prefer a managed identity on Azure
   VMs and Azure Arc-enabled servers. The repository contains no secret, and `.gitignore` excludes secret files.
