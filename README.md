@@ -135,6 +135,16 @@ centralized gateway log analysis; ODGO reuses its semantic model and report. Fab
 near-real-time monitoring of the whole platform, while ODGO focuses on the long-term analysis of gateway logs: both can
 run side by side.
 
+**Include the cost in the decision.** The Microsoft template only needs Power BI Desktop, and pbigtwmonitor an Azure
+storage account. Fabric Platform Monitoring and ODGO need a Fabric capacity, which they use differently: streaming
+items such as Eventstreams and an Eventhouse consume capacity continuously while they ingest, whereas ODGO's notebooks
+consume it only during their scheduled runs (every 2 hours by default, see
+[`ingest_interval_minutes`](docs/configuration.md#setup-notebook-parameters)) and its data stays in OneLake storage.
+For every option, consumption grows with the number of gateways and the volume of their logs: measure it with the
+[Capacity Metrics app](https://learn.microsoft.com/fabric/enterprise/metrics-app) before you choose a capacity size.
+Report readers also need a Power BI Pro or Premium Per User license, unless the workspace is on an F64 or larger
+capacity.
+
 ## Limitations
 
 * **Not real time.** Data arrives in scheduled batches, processed every 2 hours by default. Use Fabric Platform
