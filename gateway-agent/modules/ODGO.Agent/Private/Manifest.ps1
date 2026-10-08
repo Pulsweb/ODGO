@@ -1,4 +1,4 @@
-# Manifest, run telemetry and agent-metadata documents (read by the nb_gwmon_ingest notebook).
+# Manifest, run telemetry and agent-metadata documents (read by the ODGO_Ingest notebook).
 
 function ConvertTo-GwmJsonBytes {
     [OutputType([byte[]])]

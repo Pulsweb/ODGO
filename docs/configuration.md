@@ -6,7 +6,7 @@ Every setting has a default, so a standard installation needs no configuration f
 |---|---|---|
 | [Setup notebook parameters](#setup-notebook-parameters) (optional) | First code cell of `ODGO_Setup` | You, before **Run all** |
 | [Agent configuration](#agent-configuration) | `config\config.json` in the agent folder (`%ProgramFiles%\ODGO` by default) on each gateway server | `Install-Agent.ps1` |
-| [Processing configuration](#processing-configuration-processingjson) | `Files/gateway-monitor/config/processing.json` in `lh_gateway_monitor` | `nb_gwmon_ingest`, with the defaults, on its first run |
+| [Processing configuration](#processing-configuration-processingjson) | `Files/gateway-monitor/config/processing.json` in `ODGO_Lakehouse` | `ODGO_Ingest`, with the defaults, on its first run |
 | [Gateway overrides](#gateway-overrides-gateway-overridesjson) (optional) | `Files/gateway-monitor/config/gateway-overrides.json` | You |
 
 ## Setup notebook parameters
@@ -16,10 +16,10 @@ The defaults suit most installations.
 | Parameter | Default | Description |
 |---|---|---|
 | `source` | `main` branch archive on GitHub | ODGO version to install: the URL of a repository `.zip` (branch or release), or a `.zip` file or repository folder readable by the notebook |
-| `ingest_interval_minutes` | `120` | How often `nb_gwmon_ingest` runs, in minutes (every 2 hours). Above 360, also raise `gold.lateAfterMinutes` (see [processing configuration](#processing-configuration-processingjson)) |
+| `ingest_interval_minutes` | `120` | How often `ODGO_Ingest` runs, in minutes (every 2 hours). Above 360, also raise `gold.lateAfterMinutes` (see [processing configuration](#processing-configuration-processingjson)) |
 
-The setup also starts a first run of `nb_gwmon_ingest`, which creates the tables and frames the semantic model.
-`nb_gwmon_maintenance` runs once a day, between two runs of `nb_gwmon_ingest`. The schedules can also be changed later
+The setup also starts a first run of `ODGO_Ingest`, which creates the tables and refreshes the semantic model.
+`ODGO_Maintenance` runs once a day, between two runs of `ODGO_Ingest`. The schedules can also be changed later
 in the schedule settings of each notebook.
 
 ## Agent configuration
@@ -151,7 +151,7 @@ have it. If `ReportFilePath` was changed in `Microsoft.PowerBI.DataMovement.Pipe
 
 ## Processing configuration (`processing.json`)
 
-`nb_gwmon_ingest` creates `Files/gateway-monitor/config/processing.json` with the defaults below on its first run.
+`ODGO_Ingest` creates `Files/gateway-monitor/config/processing.json` with the defaults below on its first run.
 Both notebooks read it at every run, so a change applies to the next run. To change it, download the file from the
 lakehouse explorer, edit it and upload it again (or edit it with any OneLake-compatible tool). Missing keys keep their
 defaults; invalid values stop the run with a message that lists them.
@@ -173,14 +173,14 @@ defaults; invalid values stop the run with a message that lists them.
 | | `gatewayInclude` | `[]` | Optional allow-list of gateway IDs (empty = all) |
 | | `retiredServers` | `[]` | Server IDs or names of decommissioned agents. They're removed from the *Ingestion Health* status (otherwise they stay *Missing*) |
 | | `inactiveAfterDays` | `14` | Gateways without data for this long get `Status = Inactive` |
-| | `expectedUploadIntervalMinutes` / `lateAfterMinutes` / `missingAfterMinutes` | `15` / `480` / `1440` | Thresholds of the *Upload Status* (OK, Late, Missing, Failing). The reports compare the last processed heartbeat with the current time, so `lateAfterMinutes` must stay longer than the interval of `nb_gwmon_ingest`. If you schedule it more often, you can lower them to detect a silent server sooner |
+| | `expectedUploadIntervalMinutes` / `lateAfterMinutes` / `missingAfterMinutes` | `15` / `480` / `1440` | Thresholds of the *Upload Status* (OK, Late, Missing, Failing). The report compares the last processed heartbeat with the current time, so `lateAfterMinutes` must stay longer than the interval of `ODGO_Ingest`. If you schedule it more often, you can lower them to detect a silent server sooner |
 | | `ingestionWindowDays` | `30` | History of the ingestion-health tables |
 | | `calendarFutureYears` | `0` | Extra years in `gold.calendar` |
 | `redaction` | `enabled`, `rules[]` | connection-string secrets, bearer tokens | Regex rules (`name`, `pattern`, `replacement`, `columns`) applied in Silver to the listed text columns |
-| `retention` | `rawDays`, `manifestDays`, `telemetryDays`, `stagingDays`, `bronzeDays`, `silverDays`, `opsDays`, `quarantineDays`, `vacuumHours` | `30`, `90`, `90`, `2`, `30`, `400`, `400`, `90`, `168` | Applied by `nb_gwmon_maintenance`. `vacuumHours` can't be lower than 168 |
+| `retention` | `rawDays`, `manifestDays`, `telemetryDays`, `stagingDays`, `bronzeDays`, `silverDays`, `opsDays`, `quarantineDays`, `vacuumHours` | `30`, `90`, `90`, `2`, `30`, `400`, `400`, `90`, `168` | Applied by `ODGO_Maintenance`. `vacuumHours` can't be lower than 168 |
 | `maintenance` | `optimizeLayers`, `vacuumLayers`, `optimizeRecentPartitionsOnly`, `recentPartitionDays` | all layers, `true`, `45` | `OPTIMIZE` (V-Order on Gold) and `VACUUM` |
-| `semanticModel` | `name`, `reframeAfterGold` | `ODGO Model`, `true` | Reframe the semantic model at the end of each `nb_gwmon_ingest` run, so that the reports show the new data at once (also notebook parameter `reframe_semantic_model`) |
-| `validation` | `failOnError`, `maxParquetFilesPerTable`, `freshnessMinutes` | `false`, `1000`, `480` | Thresholds of the validation checks run by `nb_gwmon_maintenance` |
+| `semanticModel` | `name`, `reframeAfterGold` | `ODGO_Model`, `true` | Reframe the semantic model at the end of each `ODGO_Ingest` run, so that the report shows the new data at once (also notebook parameter `reframe_semantic_model`) |
+| `validation` | `failOnError`, `maxParquetFilesPerTable`, `freshnessMinutes` | `false`, `1000`, `480` | Thresholds of the validation checks run by `ODGO_Maintenance` |
 
 ### Notebook parameters
 
@@ -189,13 +189,13 @@ the notebook from a pipeline with parameters.
 
 | Notebook | Parameter | Description |
 |---|---|---|
-| `nb_gwmon_ingest` | `lookback_days` | Days of manifests and telemetry to scan (0 = `landing.manifestLookbackDays`) |
+| `ODGO_Ingest` | `lookback_days` | Days of manifests and telemetry to scan (0 = `landing.manifestLookbackDays`) |
 | | `reprocess_from` / `reprocess_to` | Re-ingest segments uploaded between these dates (`YYYY-MM-DD`); the raw files must still exist |
 | | `max_manifests` | Maximum manifests per run (0 = `landing.maxManifestsPerRun`) |
 | | `rebuild_from_batch` | Reprocess Silver from the Bronze batches after this `ingest_batch_id` (`0` = everything) |
 | | `rebuild_gold` | Recompute every Gold table of the window instead of the changed months only |
 | | `reframe_semantic_model` / `semantic_model_name` | Reframe the semantic model at the end |
-| `nb_gwmon_maintenance` | `dry_run` | List what would be deleted, without deleting or compacting anything |
+| `ODGO_Maintenance` | `dry_run` | List what would be deleted, without deleting or compacting anything |
 | | `skip_optimize` / `skip_vacuum` | Skip a maintenance step |
 | | `fail_on_error` | Fail the run when a validation check fails (also `validation.failOnError`) |
 

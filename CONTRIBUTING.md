@@ -28,9 +28,9 @@ before merging; it isn't published in this repository. In your pull request, des
   `Invoke-GatewayLogCollection.ps1 -Test` and `-PlanOnly`. To test without Fabric, set `target.type` to `LocalFolder`
   (with `target.localPath`) and `authentication.mode` to `None` in the configuration: the agent then writes the
   landing layout to a local folder.
-* **Notebooks, semantic model and reports:** in a test workspace, run the setup notebook with `source` set to the
+* **Notebooks, semantic model and report:** in a test workspace, run the setup notebook with `source` set to the
   archive of your branch, for example `https://github.com/<you>/ODGO/archive/refs/heads/<branch>.zip`.
-* **Reports in Power BI Desktop:** open a report with a live connection to the *ODGO Model* of your test workspace.
+* **Report in Power BI Desktop:** open the report with a live connection to the `ODGO_Model` of your test workspace.
   Next to its `definition.pbir`, create a `definition-liveConnect.pbir` file (Git ignores it) and open this file in
   Power BI Desktop. The semantic model ID is in the address of the model in Fabric, after `datasets/`:
 
@@ -40,7 +40,7 @@ before merging; it isn't published in this repository. In your pull request, des
     "version": "4.0",
     "datasetReference": {
       "byConnection": {
-        "connectionString": "Data Source=\"powerbi://api.powerbi.com/v1.0/myorg/<workspace-name>\";initial catalog=\"ODGO Model\";access mode=readonly;integrated security=ClaimsToken;semanticmodelid=<semantic-model-id>"
+        "connectionString": "Data Source=\"powerbi://api.powerbi.com/v1.0/myorg/<workspace-name>\";initial catalog=\"ODGO_Model\";access mode=readonly;integrated security=ClaimsToken;semanticmodelid=<semantic-model-id>"
       }
     }
   }
@@ -48,7 +48,7 @@ before merging; it isn't published in this repository. In your pull request, des
 
   Don't open `definition.pbir`: it references the semantic model folder, and the model uses Direct Lake, so Power BI
   Desktop asks for a semantic model in a workspace and offers to overwrite it with the definition of the repository,
-  whose workspace and lakehouse IDs are placeholders. That would break the model and its reports until you run the
+  whose workspace and lakehouse IDs are placeholders. That would break the model and its report until you run the
   setup notebook again.
 
 ## Conventions
@@ -71,18 +71,18 @@ before merging; it isn't published in this repository. In your pull request, des
 ### Notebooks
 
 * Keep the Fabric Git source format (`notebook-content.py` with `# CELL` / `# METADATA` markers).
-* Put logic in pure-Python functions of `nb_gwmon_lib` so it can be unit-tested without Spark.
-* Table changes are additive: `nb_gwmon_ingest` adds new tables and columns on its next run. Update the contract in
+* Put logic in pure-Python functions of `ODGO_Lib` so it can be unit-tested without Spark.
+* Table changes are additive: `ODGO_Ingest` adds new tables and columns on its next run. Update the contract in
   `TABLES`, and the TMDL model if the table is in Gold. The maintainers regenerate
   [docs/data-model.md](docs/data-model.md).
 * `fabric/ODGO_Setup.ipynb` keeps its parameters cell first and its run cell last. Increase `SETUP_VERSION` when the
   setup logic changes, so that older copies ask users to import the new one.
 
-### Semantic model and reports
+### Semantic model and report
 
 * Keep the original object names. New measures go in the *Ingestion Health* display folder, with a description.
-* Both reports read the *ODGO Model*: check a model change in both.
-* Edit the TMDL files as text, and the reports in Power BI Desktop with a live connection (see
+* `ODGO_Report` reads `ODGO_Model`: check a model change in the report too.
+* Edit the TMDL files as text, and the report in Power BI Desktop with a live connection (see
   [Testing your change](#testing-your-change)) or as text.
 
 ### Commits and pull requests

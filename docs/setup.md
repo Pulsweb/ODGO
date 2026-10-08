@@ -17,7 +17,7 @@ Upgrades run steps 3 and 4 again: see [Upgrade](#upgrade).
 | Fabric workspace | A workspace assigned to a Fabric capacity (F SKU or trial), preferably used only for ODGO, and the Admin or Member role on it |
 | Fabric tenant settings | *Users can access data stored in OneLake with apps external to Fabric* (OneLake settings) and *Service principals can call Fabric public APIs* (Developer settings, on by default). Both can be limited to a security group that contains the agent identity. See [tenant settings](https://learn.microsoft.com/fabric/admin/about-tenant-settings) |
 | Gateway servers | Windows with the On-premises data gateway in standard mode, and outbound HTTPS (443) to `login.microsoftonline.com` and `onelake.dfs.fabric.microsoft.com`. Nothing else to install: the agent runs with Windows PowerShell 5.1, built into Windows |
-| Reports | The *Logs* page of each report uses the AppSource *Text Filter* visual, which your tenant must allow |
+| Report | The *Logs* page of the report uses the AppSource *Text Filter* visual, which your tenant must allow |
 
 ## 1. Create an identity for the agents
 
@@ -54,13 +54,12 @@ manage the access to the workspace.
 2. In the Fabric workspace, select **Import** > **Notebook** > **From this computer** and select the file.
 3. Open the notebook and select **Run all**. You don't need to change its parameters
    ([configuration.md](configuration.md#setup-notebook-parameters)). In a minute or two the notebook:
-   * creates the lakehouse `lh_gateway_monitor` (with schemas);
-   * imports the notebooks `nb_gwmon_lib`, `nb_gwmon_ingest` and `nb_gwmon_maintenance`, attached to the lakehouse;
-   * creates the *ODGO Model* semantic model (Direct Lake) and two reports on it: *ODGO - Gateway
-     Observability*, which opens on a home page with the analysis paths, and *Gateway Monitor*, with the pages of the
-     original pbigtwmonitor report;
-   * schedules `nb_gwmon_ingest` every 2 hours and `nb_gwmon_maintenance` once a day;
-   * starts a first run of `nb_gwmon_ingest`, which continues in the background for a few minutes: it creates the
+   * creates the lakehouse `ODGO_Lakehouse` (with schemas);
+   * imports the notebooks `ODGO_Lib`, `ODGO_Ingest` and `ODGO_Maintenance`, attached to the lakehouse;
+   * creates the `ODGO_Model` semantic model (Direct Lake) and the `ODGO_Report` report on it, which opens on a home
+     page with the analysis paths;
+   * schedules `ODGO_Ingest` every 2 hours and `ODGO_Maintenance` once a day;
+   * starts a first run of `ODGO_Ingest`, which continues in the background for a few minutes: it creates the
      tables, the landing folder and `processing.json`, then refreshes the semantic model.
 4. The last cell prints the PowerShell lines for step 4, with the IDs of your workspace, lakehouse and tenant.
 
@@ -120,29 +119,30 @@ agent log in the `logs` subfolder has the details.
 
 **Change the interval:** edit the trigger (**Triggers** > **Edit** > **Repeat task every**) or run
 `powershell -ExecutionPolicy RemoteSigned -File "$env:ProgramFiles\ODGO\Install-Agent.ps1" -IntervalMinutes 30` (with
-your agent folder). Upgrades keep the interval. Keep it at 60 minutes or less: otherwise the reports can show the
+your agent folder). Upgrades keep the interval. Keep it at 60 minutes or less: otherwise the report can show the
 server as *Late*.
 
-**See the first data:** the server appears on the *Ingestion Health* page of the reports after the next
-`nb_gwmon_ingest` run, within 2 hours by default. To check the whole chain and see the data right away:
+**See the first data:** the server appears on the *Ingestion Health* page of the report after the next `ODGO_Ingest`
+run, within 2 hours by default. To check the whole chain and see the data right away:
 
 1. On the gateway server, in Task Scheduler, select the *Collect Gateway Logs* task, then **Run** under **Selected
    Item** in the **Actions** pane (or run `Start-ScheduledTask -TaskPath '\ODGO\' -TaskName 'Collect Gateway Logs'`
    as administrator). The first run uploads the log files written in the last 7 days, which can take a few minutes.
    Refresh the list (F5): when the task is back to *Ready*, its **Last Run Result** is *The operation completed
    successfully. (0x0)*.
-2. In the Fabric workspace, open the `nb_gwmon_ingest` notebook and select **Run all**. It processes the uploads in a
+2. In the Fabric workspace, open the `ODGO_Ingest` notebook and select **Run all**. It processes the uploads in a
    few minutes, then refreshes the semantic model.
-3. Open the *ODGO - Gateway Observability* report, or select **Refresh** if it's already open: the server appears on
+3. Open the `ODGO_Report` report, or select **Refresh** if it's already open: the server appears on
    the *Ingestion Health* page, and the other pages show the data of its gateway.
 
 ## Upgrade
 
 1. Run the setup notebook again. It downloads the version set in `source` and updates the items in place; data is
-   kept, and a semantic model named *Gateway Monitor* by an earlier version is renamed *ODGO Model*. If the output
-   asks you to import a newer setup notebook, or if it stops because the download doesn't look like an ODGO
-   repository, delete the notebook, import the latest [fabric/ODGO_Setup.ipynb](../fabric/ODGO_Setup.ipynb) and run
-   it.
+   kept. Items that an earlier version created under other names are renamed and keep their data and schedules, for
+   example `lh_gateway_monitor` becomes `ODGO_Lakehouse`. The *Gateway Monitor* report of earlier versions isn't
+   updated anymore: delete it if you don't use it. If the output asks you to import a newer setup notebook, or if it
+   stops because the download doesn't look like an ODGO repository, delete the notebook, import the latest
+   [fabric/ODGO_Setup.ipynb](../fabric/ODGO_Setup.ipynb) and run it.
 2. On each gateway server, open PowerShell as administrator and run the `Install-Agent.ps1` of the new version
    without parameters: the download lines of step 4, then
    `powershell -NoProfile -ExecutionPolicy RemoteSigned -File $installer`. It finds the existing installation,

@@ -53,8 +53,8 @@ What's in the box:
 |---|---|
 | Collection agent ([gateway-agent/](gateway-agent/)) | Scheduled task, every 15 minutes, that runs with the Windows PowerShell built into Windows. Uploads only new, complete records of 12 gateway log types (11 on by default). Crash-safe and idempotent: re-running never duplicates data |
 | Setup notebook ([fabric/ODGO_Setup.ipynb](fabric/ODGO_Setup.ipynb)) | Imported and run once in a Fabric workspace: creates or upgrades every Fabric item and prints the agent install command |
-| Processing ([fabric/notebooks/](fabric/notebooks/)) | `nb_gwmon_ingest` builds the Bronze, Silver and Gold tables every 2 hours: it checks every upload, quarantines invalid files, redacts secrets and captures unknown columns. `nb_gwmon_maintenance` applies the retention and compacts the tables once a day |
-| Semantic model and reports ([powerbi/](powerbi/)) | *ODGO Model*, a Direct Lake semantic model, and two reports on it: *ODGO - Gateway Observability*, which opens on a home page with the analysis paths, and *Gateway Monitor*, with the pages of the original [pbigtwmonitor](https://github.com/RuiRomano/pbigtwmonitor) report. Both have an *Ingestion Health* page with the upload status of each server |
+| Processing ([fabric/notebooks/](fabric/notebooks/)) | `ODGO_Ingest` builds the Bronze, Silver and Gold tables every 2 hours: it checks every upload, quarantines invalid files, redacts secrets and captures unknown columns. `ODGO_Maintenance` applies the retention and compacts the tables once a day |
+| Semantic model and report ([powerbi/](powerbi/)) | *ODGO_Model*, a Direct Lake semantic model, and the *ODGO_Report* report on it. It opens on a home page with the analysis paths, and its *Ingestion Health* page shows the upload status of each server |
 
 ## Getting started
 
@@ -69,7 +69,7 @@ the agent runs with Windows PowerShell, built into Windows. The full guide, with
    people or groups**, type the name of the app registration and give it the **Contributor** role.
 3. **Set up Fabric:** import [fabric/ODGO_Setup.ipynb](fabric/ODGO_Setup.ipynb) into the workspace (**Import** >
    **Notebook**) and select **Run all**. In a minute or two, the notebook creates the lakehouse, notebooks, schedules,
-   semantic model and reports, starts the first ingestion in the background, then prints the install command with the
+   semantic model and report, starts the first ingestion in the background, then prints the install command with the
    IDs of the workspace, the lakehouse and your tenant.
 4. **Install the agent on each gateway server:** paste the printed lines into PowerShell run as administrator, after
    replacing `<client-id>` with the Application (client) ID of the app registration (a GUID; the installer asks for
@@ -88,13 +88,14 @@ the agent runs with Windows PowerShell, built into Windows. The full guide, with
    holds the agent, its configuration, state and logs. It asks for the client secret, stores it encrypted, registers
    the scheduled task and tests the connection to OneLake.
 
-Open the *ODGO - Gateway Observability* report: each server appears on the *Ingestion Health* page once
-`nb_gwmon_ingest` has processed its first upload. It runs every 2 hours; run it yourself in the workspace to see the
-data sooner. To upgrade, see [docs/setup.md](docs/setup.md#upgrade).
+Open the *ODGO_Report* report: each server appears on the *Ingestion Health* page once `ODGO_Ingest` has processed its
+first upload. It runs every 2 hours; to see the data right away, run the scheduled task on the server, then
+`ODGO_Ingest` in the workspace ([docs/setup.md](docs/setup.md#4-install-the-agent-on-each-gateway-server)). To upgrade,
+see [docs/setup.md](docs/setup.md#upgrade).
 
 ## Architecture
 
-![ODGO architecture: an agent on each gateway server uploads the gateway logs over HTTPS to a lakehouse in a Microsoft Fabric workspace, where scheduled notebooks build the Bronze, Silver and Gold tables read by a Direct Lake semantic model and the Power BI reports](docs/images/architecture.png)
+![ODGO architecture: an agent on each gateway server uploads the gateway logs over HTTPS to a lakehouse in a Microsoft Fabric workspace, where scheduled notebooks build the Bronze, Silver and Gold tables read by a Direct Lake semantic model and the Power BI report](docs/images/architecture.png)
 
 ## What is collected
 
@@ -110,9 +111,9 @@ The agent also sends a metadata snapshot (gateway and cluster IDs and names, gat
 server name, FQDN, cores, memory, operating system, time zone) and run telemetry (counts, status, issues, agent
 version).
 
-The reports cover query trends (counts, durations and failures by gateway, data source and query type), requests
+The report covers query trends (counts, durations and failures by gateway, data source and query type), requests
 with drillthrough to single queries, query concurrency, logs with full-text search, mashup engine activity, CPU and
-memory counters, the gateway inventory and the health of the collection itself. By default, the reports show 180 days,
+memory counters, the gateway inventory and the health of the collection itself. By default, the report shows 180 days,
 Silver keeps 400 days, Bronze and the raw files 30 days ([docs/configuration.md](docs/configuration.md)). The tables
 are described in [docs/data-model.md](docs/data-model.md).
 
@@ -147,7 +148,7 @@ run side by side.
 * **Direct Lake guardrails apply.** Direct Lake on OneLake doesn't fall back to DirectQuery, so the per-SKU
   [guardrails](https://learn.microsoft.com/fabric/fundamentals/direct-lake-overview#fabric-capacity-requirements)
   are hard limits. The daily maintenance keeps file counts down.
-* **Report constraints.** The *Logs* page of each report uses the AppSource *Text Filter* visual, which your tenant
+* **Report constraints.** The *Logs* page of the report uses the AppSource *Text Filter* visual, which your tenant
   must allow. Query concurrency is analyzed for one gateway at a time, as in the original report. There's no
   row-level security.
 * **Manual steps remain:** the tenant settings, the app registration and the agent installation on each server.
@@ -185,8 +186,9 @@ ODGO stands on the shoulders of earlier community work.
 
 * **[Rui Romano](https://www.linkedin.com/in/ruiromano/) — [pbigtwmonitor](https://github.com/RuiRomano/pbigtwmonitor).** The community's reference solution
   for centralized gateway log analysis, now archived. ODGO directly reuses its semantic model (tables, columns,
-  measures, relationships) and its report (pages, visuals, formatting, base theme), and its knowledge of the gateway
-  log formats, reimplemented in Python. pbigtwmonitor is MIT-licensed; its notice is kept in [NOTICE.md](NOTICE.md).
+  measures, relationships), parts of its report (query drillthrough and tooltip pages, base theme) and its knowledge of
+  the gateway log formats, reimplemented in Python. pbigtwmonitor is MIT-licensed; its notice is kept in
+  [NOTICE.md](NOTICE.md).
 * **[Edgar Cotte](https://www.linkedin.com/in/edgarcotte/) ([@ecotte](https://github.com/ecotte)) and the contributors of
   [Fabric Platform Monitoring](https://github.com/microsoft/fabric-toolbox/tree/main/monitoring/fabric-platform-monitoring)**
   in the [Microsoft Fabric Toolbox](https://github.com/microsoft/fabric-toolbox). It brings gateway telemetry into
@@ -196,13 +198,13 @@ ODGO stands on the shoulders of earlier community work.
 * **The FUAM team, [Kevin Thomas](https://www.linkedin.com/in/kevin-thomas-021156244/) and
   [Gellért Gintli](https://www.linkedin.com/in/ggintli/) — [Fabric Unified Admin Monitoring (FUAM)](https://github.com/microsoft/fabric-toolbox/tree/main/monitoring/fabric-unified-admin-monitoring).**
   FUAM, also in the Microsoft Fabric Toolbox, is an inspiration for ODGO: its *FUAM Gateway Monitoring From Files*
-  report inspired the layout of the *ODGO - Gateway Observability* report (logo and page tabs in a header, a filter
+  report inspired the layout of the *ODGO_Report* report (logo and page tabs in a header, a filter
   panel on each page, a home page with the analysis paths). No code or asset from FUAM is included in this repository.
 * **Microsoft documentation:** [gateway performance monitoring](https://learn.microsoft.com/data-integration/gateway/service-gateway-performance),
   [gateway log files](https://learn.microsoft.com/data-integration/gateway/service-gateway-log-files) and the
   [Microsoft Fabric documentation](https://learn.microsoft.com/fabric/).
-* Community articles about gateway monitoring, such as the *On-premises data gateway monitoring series* linked from the
-  *Counters* page of the *Gateway Monitor* report.
+* Community articles about gateway monitoring, such as the
+  [On-premises data gateway monitoring series](https://medium.com/microsoftazure/on-premises-data-gateway-monitoring-series-part-2-cpu-counters-99631a0a5b17).
 
 ## License
 

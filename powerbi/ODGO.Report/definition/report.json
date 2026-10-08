@@ -1,21 +1,21 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/3.0.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/3.3.0/schema.json",
   "themeCollection": {
     "baseTheme": {
       "name": "CY22SU03",
       "reportVersionAtImport": {
-        "visual": "2.2.0",
-        "report": "3.0.0",
-        "page": "2.0.0"
+        "visual": "2.14.0",
+        "report": "3.4.0",
+        "page": "2.3.1"
       },
       "type": "SharedResources"
     },
     "customTheme": {
-      "name": "GatewayMonitor.theme.json",
+      "name": "ODGO.theme.json",
       "reportVersionAtImport": {
-        "visual": "2.2.0",
-        "report": "3.0.0",
-        "page": "2.0.0"
+        "visual": "2.14.0",
+        "report": "3.4.0",
+        "page": "2.3.1"
       },
       "type": "RegisteredResources"
     }
@@ -96,7 +96,7 @@
           "expanded": {
             "expr": {
               "Literal": {
-                "Value": "true"
+                "Value": "false"
               }
             }
           }
@@ -124,24 +124,39 @@
       "type": "RegisteredResources",
       "items": [
         {
-          "name": "GatewayMonitor.theme.json",
-          "path": "GatewayMonitor.theme.json",
+          "name": "architecture817179334233902.png",
+          "path": "architecture817179334233902.png",
+          "type": "Image"
+        },
+        {
+          "name": "odgo-background.png",
+          "path": "odgo-background.png",
+          "type": "Image"
+        },
+        {
+          "name": "odgo-icon.png",
+          "path": "odgo-icon.png",
+          "type": "Image"
+        },
+        {
+          "name": "odgo-wordmark.png",
+          "path": "odgo-wordmark.png",
+          "type": "Image"
+        },
+        {
+          "name": "ODGO.theme.json",
+          "path": "ODGO.theme.json",
           "type": "CustomTheme"
         }
       ]
     }
   ],
   "settings": {
-    "isPersistentUserStateDisabled": false,
-    "hideVisualContainerHeader": false,
     "useStylableVisualContainerHeader": true,
     "defaultFilterActionIsDataFilter": true,
-    "useCrossReportDrillthrough": false,
-    "allowChangeFilterTypes": false,
+    "defaultDrillFilterOtherVisuals": true,
     "allowInlineExploration": true,
-    "disableFilterPaneSearch": false,
-    "useEnhancedTooltips": true,
-    "defaultDrillFilterOtherVisuals": true
+    "useEnhancedTooltips": true
   },
   "slowDataSourceSettings": {
     "isCrossHighlightingDisabled": false,

@@ -19,7 +19,7 @@ body:
     id: proposal
     attributes:
       label: Proposed solution
-      description: How could ODGO address it? Mention the components involved (agent, setup notebook, processing, model, reports).
+      description: How could ODGO address it? Mention the components involved (agent, setup notebook, processing, model, report).
     validations:
       required: true
   - type: textarea

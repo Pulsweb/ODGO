@@ -1,9 +1,9 @@
 # Data model
 
-<!-- Generated from the table contracts of nb_gwmon_lib and the TMDL semantic model. -->
+<!-- Generated from the table contracts of ODGO_Lib and the TMDL semantic model. -->
 
-The Lakehouse `lh_gateway_monitor` is schema-enabled: one schema per layer. Every table is a Delta table created
-by the `nb_gwmon_ingest` notebook from the contracts below (additive evolution only). Times are UTC unless stated otherwise.
+The Lakehouse `ODGO_Lakehouse` is schema-enabled: one schema per layer. Every table is a Delta table created
+by the `ODGO_Ingest` notebook from the contracts below (additive evolution only). Times are UTC unless stated otherwise.
 
 | Layer | Schema | Tables | Purpose |
 |---|---|---|---|
@@ -14,7 +14,7 @@ by the `nb_gwmon_ingest` notebook from the contracts below (additive evolution o
 
 ## Semantic model
 
-The semantic model `ODGO Model` (Direct Lake on OneLake) reads these Gold tables:
+The semantic model `ODGO_Model` (Direct Lake on OneLake) reads these Gold tables:
 
 | Model table | Lakehouse table |
 |---|---|

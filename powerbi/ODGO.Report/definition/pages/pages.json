@@ -1,21 +1,19 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/pagesMetadata/1.0.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/pagesMetadata/1.1.0/schema.json",
   "pageOrder": [
-    "ReportSection5080828fadb2ddcc932e",
-    "ReportSectionbc777cb1c4e899883324",
-    "ReportSectionb1811a8ddb63e03cd78d",
-    "ReportSectione0c91d96558ab0b6a4ce",
-    "ReportSection4e4fd0bfd7ca2d015300",
-    "ReportSection16d814546b15d9b6ee7b",
-    "ReportSection9dd88a325d4000a304d0",
-    "ReportSection7d29141cc97166d18ad8",
-    "gwmIngestionHealth",
-    "gwmIngestionDetails",
+    "odgoHome",
+    "odgoOverview",
+    "odgoRequests",
+    "odgoQueries",
+    "odgoLogs",
+    "odgoMashup",
+    "odgoCounters",
+    "odgoIngestion",
     "ReportSection5dd91c6beea80ba97b62",
     "ReportSection95e9960116cd42f74c67",
     "ReportSection1579263ab3edd5ce9246",
     "ReportSection3a78397df080b6bd0824",
     "ReportSectionbbe05bcdd43cb5131bc2"
   ],
-  "activePageName": "ReportSection5080828fadb2ddcc932e"
+  "activePageName": "odgoHome"
 }

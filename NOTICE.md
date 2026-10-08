@@ -7,9 +7,9 @@ ODGO (On-premises Data Gateway Observability) is a modernization of **pbigtwmoni
 
 * the semantic model: tables, columns, measures, relationships and formatting, converted to a TMDL Direct Lake
   model;
-* the report: pages, visuals, formatting, tooltips, drillthrough and the base theme, converted to the PBIR format;
+* the report: the query drillthrough and tooltip pages and the base theme, converted to the PBIR format;
 * the knowledge of the gateway log formats encoded in its Power Query transformations, re-implemented in Python in
-  `nb_gwmon_lib`.
+  `ODGO_Lib`.
 
 pbigtwmonitor is distributed under the MIT License:
 
@@ -39,7 +39,7 @@ SOFTWARE.
 
 ## Power BI base theme
 
-`CY22SU03.json`, in `StaticResources/SharedResources/BaseThemes` of both reports in `powerbi/`, is the Power BI base
+`CY22SU03.json`, in `StaticResources/SharedResources/BaseThemes` of the report in `powerbi/`, is the Power BI base
 theme that Power BI Desktop writes into every report definition. It was taken unchanged from the original pbigtwmonitor
 report definition.
 
@@ -55,7 +55,7 @@ is credited in the README.
 
 ## FUAM (inspiration only)
 
-The layout of the *ODGO - Gateway Observability* report was inspired by the *FUAM Gateway Monitoring From Files*
+The layout of the `ODGO_Report` report was inspired by the *FUAM Gateway Monitoring From Files*
 report of [FUAM](https://github.com/microsoft/fabric-toolbox/tree/main/monitoring/fabric-unified-admin-monitoring)
 (Fabric Unified Admin Monitoring, Microsoft Fabric Toolbox, MIT License). Its pages, theme and images were created for
 ODGO: no code, query, image or other asset from FUAM is included in this repository, so no license notice is required.

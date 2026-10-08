@@ -3,8 +3,8 @@
   "name": "ReportSection5dd91c6beea80ba97b62",
   "displayName": "Query Detail",
   "displayOption": "FitToPage",
-  "height": 720.0,
-  "width": 1280.0,
+  "height": 1080,
+  "width": 1920,
   "pageBinding": {
     "name": "Pod1",
     "type": "Drillthrough",
@@ -59,29 +59,33 @@
       }
     ]
   },
+  "visibility": "HiddenInViewMode",
   "objects": {
-    "outspacePane": [
-      {
-        "properties": {
-          "width": {
-            "expr": {
-              "Literal": {
-                "Value": "204L"
-              }
-            }
-          }
-        }
-      }
-    ],
     "background": [
       {
         "properties": {
-          "color": {
-            "solid": {
-              "color": {
+          "image": {
+            "image": {
+              "name": {
                 "expr": {
                   "Literal": {
-                    "Value": "'#F2F2F2'"
+                    "Value": "'odgo-background.png'"
+                  }
+                }
+              },
+              "url": {
+                "expr": {
+                  "ResourcePackageItem": {
+                    "PackageName": "RegisteredResources",
+                    "PackageType": 1,
+                    "ItemName": "odgo-background.png"
+                  }
+                }
+              },
+              "scaling": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'Fill'"
                   }
                 }
               }
@@ -96,7 +100,23 @@
           }
         }
       }
+    ],
+    "outspace": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'#EAF3F2'"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     ]
-  },
-  "visibility": "HiddenInViewMode"
+  }
 }

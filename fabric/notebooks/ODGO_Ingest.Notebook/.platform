@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Notebook",
+    "displayName": "ODGO_Ingest",
+    "description": "Scheduled processing: landing to Bronze, Silver and Gold (creates the tables on first run)."
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "0629f6e9-d0b3-5fa4-aaf3-c1343fbc17ce"
+  }
+}

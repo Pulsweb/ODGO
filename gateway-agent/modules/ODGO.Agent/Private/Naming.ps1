@@ -1,4 +1,4 @@
-# Deterministic names, identifiers and landing paths (must stay compatible with RAW_PATH_RE in nb_gwmon_lib).
+# Deterministic names, identifiers and landing paths (must stay compatible with RAW_PATH_RE in ODGO_Lib).
 
 function ConvertTo-GwmPartitionValue {
     <# Lower-case, characters outside [a-z0-9._-] replaced by '-', trimmed to 63 characters. #>

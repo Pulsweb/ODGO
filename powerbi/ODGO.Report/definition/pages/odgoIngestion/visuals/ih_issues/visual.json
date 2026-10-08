@@ -1,0 +1,223 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.2.0/schema.json",
+  "name": "ih_issues",
+  "position": {
+    "x": 312,
+    "y": 784,
+    "z": 2500,
+    "height": 276,
+    "width": 518.67,
+    "tabOrder": 2500
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Ingestion Issues"
+                    }
+                  },
+                  "Property": "Detected (UTC)"
+                }
+              },
+              "queryRef": "Ingestion Issues.Detected (UTC)",
+              "nativeQueryRef": "Detected (UTC)"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Ingestion Issues"
+                    }
+                  },
+                  "Property": "Severity"
+                }
+              },
+              "queryRef": "Ingestion Issues.Severity",
+              "nativeQueryRef": "Severity"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Ingestion Issues"
+                    }
+                  },
+                  "Property": "Issue Type"
+                }
+              },
+              "queryRef": "Ingestion Issues.Issue Type",
+              "nativeQueryRef": "Issue Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Ingestion Issues"
+                    }
+                  },
+                  "Property": "Log Type"
+                }
+              },
+              "queryRef": "Ingestion Issues.Log Type",
+              "nativeQueryRef": "Log Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Ingestion Issues"
+                    }
+                  },
+                  "Property": "Reason"
+                }
+              },
+              "queryRef": "Ingestion Issues.Reason",
+              "nativeQueryRef": "Reason"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Ingestion Issues"
+                    }
+                  },
+                  "Property": "Occurrences"
+                }
+              },
+              "queryRef": "Ingestion Issues.Occurrences",
+              "nativeQueryRef": "Occurrences"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Ingestion Issues"
+                    }
+                  },
+                  "Property": "Object"
+                }
+              },
+              "queryRef": "Ingestion Issues.Object",
+              "nativeQueryRef": "Object"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Ingestion Issues"
+                    }
+                  },
+                  "Property": "Details"
+                }
+              },
+              "queryRef": "Ingestion Issues.Details",
+              "nativeQueryRef": "Details"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Ingestion Issues"
+                  }
+                },
+                "Property": "Detected (UTC)"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "columnHeaders": [
+        {
+          "properties": {
+            "wordWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "total": [
+        {
+          "properties": {
+            "totals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Ingestion issues'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Rejected records, quarantined files, missing segments'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

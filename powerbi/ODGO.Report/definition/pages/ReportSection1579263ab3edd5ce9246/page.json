@@ -3,8 +3,8 @@
   "name": "ReportSection1579263ab3edd5ce9246",
   "displayName": "tlt - MashupException",
   "displayOption": "ActualSize",
-  "height": 240.0,
-  "width": 320.0,
+  "height": 240,
+  "width": 320,
   "filterConfig": {
     "filters": [
       {
@@ -25,5 +25,31 @@
     ]
   },
   "type": "Tooltip",
-  "visibility": "HiddenInViewMode"
+  "visibility": "HiddenInViewMode",
+  "objects": {
+    "background": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'#FFFFFF'"
+                  }
+                }
+              }
+            }
+          },
+          "transparency": {
+            "expr": {
+              "Literal": {
+                "Value": "0D"
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
 }

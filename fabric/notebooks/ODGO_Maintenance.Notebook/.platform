@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Notebook",
+    "displayName": "ODGO_Maintenance",
+    "description": "Retention, OPTIMIZE, VACUUM and validation checks, once a day."
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "70808949-8b36-586a-91b5-25f6f34a7ab6"
+  }
+}
