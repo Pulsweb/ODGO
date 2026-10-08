@@ -34,7 +34,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string] $ConfigPath = (Join-Path $PSScriptRoot 'config\config.json'),
+    [string] $ConfigPath,
     [switch] $Test,
     [ValidateSet('Scheduled', 'Manual', 'Test')][string] $Trigger = 'Manual',
     [ValidateSet('Debug', 'Information', 'Warning', 'Error')][string] $LogLevel,
@@ -42,6 +42,9 @@ param(
     [switch] $Quiet
 )
 $ErrorActionPreference = 'Stop'
+# Not a parameter default: Windows PowerShell 5.1 hasn't set $PSScriptRoot yet when it evaluates the defaults of a script
+# started with -File, as the scheduled task does.
+if (-not $ConfigPath) { $ConfigPath = Join-Path $PSScriptRoot 'config\config.json' }
 $modulePath = Join-Path $PSScriptRoot 'modules\ODGO.Agent\ODGO.Agent.psd1'
 try {
     Get-Module ODGO.Agent | Remove-Module -Force

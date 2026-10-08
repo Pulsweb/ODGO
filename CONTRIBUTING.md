@@ -59,6 +59,8 @@ before merging; it isn't published in this repository. In your pull request, des
   must work in both. No PowerShell 7-only syntax or parameters (for example `??`, `ConvertFrom-Json -AsHashtable`) and
   no .NET Core-only APIs (for example `[Convert]::ToHexString`, the 3-argument `File.Move`). Keep the files ASCII-only:
   Windows PowerShell reads files without a BOM with the ANSI code page.
+* Don't use `$PSScriptRoot` in the parameter defaults of a script: Windows PowerShell 5.1 hasn't set it yet when the
+  script is started with `-File`, as the scheduled task does. Compute such defaults in the script body.
 * Modules use `Set-StrictMode -Version 3.0` and `$ErrorActionPreference = 'Stop'`. Agent functions are prefixed
   `Gwm`.
 * Functions that return collections emit them on the pipeline; callers wrap the call in `@()`. Don't use
