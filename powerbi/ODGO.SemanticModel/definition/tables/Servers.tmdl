@@ -25,10 +25,11 @@ table Servers
 		displayFolder: Ingestion Health
 		lineageTag: 5172a949-8c7b-55f2-825b-16a7fab87079
 
-	/// OK, Late, Missing (no heartbeat within Late After / Missing After minutes) or Failing (last run failed). One server only.
+	/// OK, Late, Missing (no heartbeat within Late After / Missing After minutes) or Failing (last run failed). One server
+	/// only; blank for the blank row of the table, so that it isn't counted as a missing server.
 	measure 'Upload Status' =
 			IF(
-			    HASONEVALUE('Servers'[ServerId]),
+			    HASONEVALUE('Servers'[ServerId]) && NOT ISBLANK(SELECTEDVALUE('Servers'[ServerId])),
 			    VAR minutes = [Minutes Since Last Heartbeat]
 			    VAR lateAfter = MAX('Servers'[Late After (min)])
 			    VAR missingAfter = MAX('Servers'[Missing After (min)])
