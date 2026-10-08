@@ -8,7 +8,8 @@ ODGO is installed in four steps:
 3. [Run the setup notebook](#3-run-the-setup-notebook) in the workspace.
 4. [Install the agent](#4-install-the-agent-on-each-gateway-server) on each gateway server.
 
-Upgrades run steps 3 and 4 again: see [Upgrade](#upgrade).
+Then open the report: [See the first data](#see-the-first-data) shows how to get it right away. Upgrades run steps 3
+and 4 again: see [Upgrade](#upgrade).
 
 ## Prerequisites
 
@@ -122,8 +123,10 @@ agent log in the `logs` subfolder has the details.
 your agent folder). Upgrades keep the interval. Keep it at 60 minutes or less: otherwise the report can show the
 server as *Late*.
 
-**See the first data:** the server appears on the *Ingestion Health* page of the report after the next `ODGO_Ingest`
-run, within 2 hours by default. To check the whole chain and see the data right away:
+### See the first data
+
+The server appears on the *Ingestion Health* page of the report after the next `ODGO_Ingest` run, within 2 hours by
+default. To check the whole chain and see the data right away:
 
 1. On the gateway server, in Task Scheduler, select the *Collect Gateway Logs* task, then **Run** under **Selected
    Item** in the **Actions** pane (or run `Start-ScheduledTask -TaskPath '\ODGO\' -TaskName 'Collect Gateway Logs'`

@@ -13,13 +13,18 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
 </p>
 
+![The Overview page of the ODGO report: key figures, the requests, queries and failed queries per day, the share of refresh and DirectQuery queries, and the inventory of six gateways in three clusters](docs/images/report-overview.png)
+
+<p align="center"><sub>The <em>Overview</em> page of the ODGO report. All the screenshots use fictitious demo data.</sub></p>
+
 > [!CAUTION]
 > This solution accelerator is not an official Microsoft product! It is a solution accelerator, which can help you implement a monitoring solution within Fabric. As such there is no official support available and there is a risk that things might break.
 
 **Contents:**
-[Overview](#overview) ·
-[Getting started](#getting-started) ·
-[Architecture](#architecture) ·
+[Why ODGO](#why-odgo) ·
+[See it in action](#see-it-in-action) ·
+[Get started](#get-started) ·
+[How it works](#how-it-works) ·
 [What is collected](#what-is-collected) ·
 [Monitoring solution landscape](#monitoring-solution-landscape) ·
 [Limitations](#limitations) ·
@@ -28,76 +33,134 @@
 [Credits](#credits-and-acknowledgements) ·
 [License](#license)
 
-## Overview
+## Why ODGO
 
 On-premises data gateways connect Power BI, Microsoft Fabric, Power Apps and Power Automate to data behind a
 firewall. When refreshes slow down or fail, the answers are in the gateway's own log files: query durations, errors,
 data sources, mashup engine activity, CPU and memory counters. But those files stay on each gateway server, rotate
 after a limited number of files and have to be collected by hand from every node of every cluster.
 
-ODGO collects them continuously from every gateway server into **OneLake**, keeps them as Delta tables in a
-**Fabric lakehouse** (Bronze, Silver and Gold layers) and serves them to Power BI through a **Direct Lake** semantic
-model. You get one place to answer questions such as *which data source fails most often*, *which node is
-overloaded* or *did the last gateway update change query durations*, with months of history to spot trends long
-after the gateways have rotated their own files.
+ODGO collects them continuously from every gateway server into **OneLake**, keeps them as Delta tables in a **Fabric
+lakehouse** and serves them to a ready-made **Power BI report** through a **Direct Lake** semantic model:
 
-| | |
-|---|---|
-| **Supported** | Microsoft **On-premises data gateway** in standard mode, on Windows servers. Clusters spread over several servers |
-| **Not in scope** | **VNet data gateways** (a Microsoft-managed service: there is no server to install the agent on) and personal-mode gateways |
-| **Not collected** | Service-side data such as Power BI refresh history, Fabric capacity metrics or audit logs: ODGO only reads the files that the gateway writes on its servers |
+* **One report for all your gateways.** Requests, queries, errors, logs, mashup engine activity and CPU and memory
+  counters of every node of every cluster, down to a single query.
+* **Months of history.** Spot trends and compare before and after a gateway update, long after the gateways have
+  rotated their own files.
+* **Know when the collection stops.** The agent of each server reports every 15 minutes, and the report flags the
+  servers that go silent.
+* **Nothing to install on the gateway servers.** The agent is a scheduled task that runs with the Windows PowerShell
+  built into Windows, and uploads only new, complete records.
+* **Your data stays in your tenant.** Everything runs in your own Fabric workspace, and the connection-string secrets
+  and tokens found in the logs are masked.
+* **One notebook to deploy and upgrade.** The setup notebook creates or updates every Fabric item and prints the
+  command that installs the agent.
 
-What's in the box:
+ODGO works with the **On-premises data gateway in standard mode** on Windows servers, including clusters spread over
+several servers. VNet data gateways and personal-mode gateways are out of scope ([details](#what-is-collected)).
+
+## See it in action
+
+The report opens on a home page with the analysis paths, followed by seven pages: *Overview*, *Requests*, *Queries*,
+*Logs*, *Mashup*, *System Counters* and *Ingestion Health*. Here are four of them, with fictitious data from six
+gateways in three clusters.
+
+**Find the slow and failing data sources.** Query volumes, durations and failures per day, per data source and per
+gateway, for refreshes and DirectQuery. Right-click a query to open its details.
+
+![The Queries page: the query counts, the queries and errors per day, the average duration of refresh and DirectQuery queries, the queries per data source and per gateway, and the share of failed queries](docs/images/report-queries.png)
+
+**Spot the overloaded node.** CPU and memory of each gateway and of its server, per day or for each interval that the
+gateway reports. Here, PROD-EU-02 peaks at 75 to 100% CPU every day, while the other nodes of its cluster stay below
+60%.
+
+![The System Counters page: the daily maximum of the gateway CPU and of the server CPU for six gateways, one of which runs close to 100%](docs/images/report-system-counters.png)
+
+**Know when a server stops sending its logs.** The *Ingestion Health* page shows the last heartbeat and upload of the
+agent of each server, and by default flags a server *Late* after 8 hours of silence and *Missing* after 24 hours.
+Here, the agent of PROD-US-02 has been silent for more than 9 hours.
+
+![The Ingestion Health page: six servers with an agent, one of them late, and the status, minutes since the last heartbeat and last upload of each collection agent](docs/images/report-ingestion-health.png)
+
+**Investigate errors across every gateway.** Gateway logs per day, by event type and by activity type, with a
+full-text search on the messages. Here, the spike of errors comes from an expired data source password.
+
+![The Logs page: the log and error counts, the logs and errors per day with a spike of errors, and the logs by event type and by activity type](docs/images/report-logs.png)
+
+## Get started
+
+You deploy ODGO from Fabric with one notebook, then install the agent on each gateway server with one PowerShell
+command. It takes about 15 minutes for the first server, mostly copy and paste. The [setup guide](docs/setup.md)
+details each step.
+
+**Before you start**, check that you have:
+
+* a Fabric workspace on a capacity (F SKU or trial), with the Admin or Member role. Use a workspace dedicated to ODGO;
+* the right to create an app registration in Microsoft Entra ID, unless your gateways run on Azure VMs or Azure
+  Arc-enabled servers, which can use their managed identity;
+* administrator access to each gateway server, and outbound HTTPS from the server to Microsoft Entra ID and OneLake.
+  Nothing has to be installed first;
+* the two Fabric tenant settings that the agents need ([prerequisites](docs/setup.md#prerequisites)).
+
+### 1. Create an identity for the agents
+
+In the [Microsoft Entra admin center](https://entra.microsoft.com), create an **app registration** and a **client
+secret**. Copy the *Application (client) ID* and the secret *Value*. On Azure VMs and Azure Arc-enabled servers, you
+can use the server's managed identity instead.
+[Details](docs/setup.md#1-create-an-identity-for-the-agents)
+
+### 2. Give it access to the workspace
+
+In the Fabric workspace, select **Manage access** > **Add people or groups**, type the name of the app registration
+and give it the **Contributor** role. Do it before step 3.
+[Details](docs/setup.md#2-give-the-identity-access-to-the-workspace)
+
+### 3. Deploy ODGO in Fabric
+
+Download [fabric/ODGO_Setup.ipynb](fabric/ODGO_Setup.ipynb), import it into the workspace (**Import** > **Notebook** >
+**From this computer**) and select **Run all**. In a minute or two, the notebook creates the lakehouse, the notebooks
+and their schedules, the semantic model and the report, then prints the command that installs the agent.
+[Details](docs/setup.md#3-run-the-setup-notebook)
+
+### 4. Install the agent on each gateway server
+
+Open PowerShell **as administrator** on the server and paste the lines printed by the notebook, after replacing
+`<client-id>` with the Application (client) ID of step 1. Type the client secret when asked. The installer creates a
+scheduled task that uploads the new log records every 15 minutes, then tests the whole chain: every check should
+show *PASS*.
+[Details](docs/setup.md#4-install-the-agent-on-each-gateway-server)
+
+### 5. Open the report
+
+Open the `ODGO_Report` report in the workspace. Each server appears on the *Ingestion Health* page after the next run
+of `ODGO_Ingest`, within 2 hours. To see your data right away, run the *Collect Gateway Logs* task on the server, then
+run `ODGO_Ingest` in the workspace.
+[Details](docs/setup.md#see-the-first-data)
+
+To upgrade, run the latest setup notebook, then the new installer on each server ([upgrade](docs/setup.md#upgrade)).
+
+## How it works
+
+An agent on each gateway server uploads the new log records to OneLake every 15 minutes. In the Fabric workspace,
+`ODGO_Ingest` checks every upload and builds the Bronze, Silver and Gold tables every 2 hours, and the report reads
+them through a Direct Lake semantic model.
+
+![ODGO architecture: an agent on each gateway server uploads the gateway logs over HTTPS to a lakehouse in a Microsoft Fabric workspace, where scheduled notebooks build the Bronze, Silver and Gold tables read by a Direct Lake semantic model and the Power BI report](docs/images/architecture.png)
 
 | Component | What it does |
 |---|---|
 | Collection agent ([gateway-agent/](gateway-agent/)) | Scheduled task, every 15 minutes, that runs with the Windows PowerShell built into Windows. Uploads only new, complete records of 12 gateway log types (11 on by default). Crash-safe and idempotent: re-running never duplicates data |
 | Setup notebook ([fabric/ODGO_Setup.ipynb](fabric/ODGO_Setup.ipynb)) | Imported and run once in a Fabric workspace: creates or upgrades every Fabric item and prints the agent install command |
 | Processing ([fabric/notebooks/](fabric/notebooks/)) | `ODGO_Ingest` builds the Bronze, Silver and Gold tables every 2 hours: it checks every upload, quarantines invalid files, redacts secrets and captures unknown columns. `ODGO_Maintenance` applies the retention and compacts the tables once a day |
-| Semantic model and report ([powerbi/](powerbi/)) | *ODGO_Model*, a Direct Lake semantic model, and the *ODGO_Report* report on it. It opens on a home page with the analysis paths, and its *Ingestion Health* page shows the upload status of each server |
-
-## Getting started
-
-You need a Fabric workspace on a capacity (F SKU or trial). Nothing has to be installed on the gateway servers first:
-the agent runs with Windows PowerShell, built into Windows. The full guide, with prerequisites and tenant settings, is
-[docs/setup.md](docs/setup.md).
-
-1. **Create an identity for the agents:** a Microsoft Entra app registration with a client secret; copy its
-   Application (client) ID. On Azure VMs and Azure Arc-enabled servers you can use the server's managed identity
-   instead.
-2. **Give it access to the workspace, before the next step:** in the workspace, select **Manage access** > **Add
-   people or groups**, type the name of the app registration and give it the **Contributor** role.
-3. **Set up Fabric:** import [fabric/ODGO_Setup.ipynb](fabric/ODGO_Setup.ipynb) into the workspace (**Import** >
-   **Notebook**) and select **Run all**. In a minute or two, the notebook creates the lakehouse, notebooks, schedules,
-   semantic model and report, starts the first ingestion in the background, then prints the install command with the
-   IDs of the workspace, the lakehouse and your tenant.
-4. **Install the agent on each gateway server:** paste the printed lines into PowerShell run as administrator, after
-   replacing `<client-id>` with the Application (client) ID of the app registration (a GUID; the installer asks for
-   the secret value):
-
-   ```powershell
-   Set-Location $env:TEMP
-   [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor 'Tls12'
-   Invoke-WebRequest 'https://github.com/Pulsweb/ODGO/archive/refs/heads/main.zip' -OutFile odgo.zip -UseBasicParsing
-   Remove-Item odgo -Recurse -Force -ErrorAction Ignore; Expand-Archive odgo.zip odgo
-   $installer = (Get-ChildItem odgo -Recurse -Filter Install-Agent.ps1 | Select-Object -First 1).FullName
-   powershell -NoProfile -ExecutionPolicy RemoteSigned -File $installer -InstallPath "$env:ProgramFiles\ODGO" -WorkspaceId <workspace-id> -LakehouseId <lakehouse-id> -TenantId <tenant-id> -ClientId <client-id>
-   ```
-
-   The installer creates the `-InstallPath` folder (change it to install elsewhere, for example `D:\ODGO`), which
-   holds the agent, its configuration, state and logs. It asks for the client secret, stores it encrypted, registers
-   the scheduled task and tests the connection to OneLake.
-
-Open the *ODGO_Report* report: each server appears on the *Ingestion Health* page once `ODGO_Ingest` has processed its
-first upload. It runs every 2 hours; to see the data right away, run the scheduled task on the server, then
-`ODGO_Ingest` in the workspace ([docs/setup.md](docs/setup.md#4-install-the-agent-on-each-gateway-server)). To upgrade,
-see [docs/setup.md](docs/setup.md#upgrade).
-
-## Architecture
-
-![ODGO architecture: an agent on each gateway server uploads the gateway logs over HTTPS to a lakehouse in a Microsoft Fabric workspace, where scheduled notebooks build the Bronze, Silver and Gold tables read by a Direct Lake semantic model and the Power BI report](docs/images/architecture.png)
+| Semantic model and report ([powerbi/](powerbi/)) | *ODGO_Model*, a Direct Lake semantic model, and the *ODGO_Report* report on it, described in [See it in action](#see-it-in-action) |
 
 ## What is collected
+
+| | |
+|---|---|
+| **Supported** | Microsoft **On-premises data gateway** in standard mode, on Windows servers. Clusters spread over several servers |
+| **Not in scope** | **VNet data gateways** (a Microsoft-managed service: there is no server to install the agent on) and personal-mode gateways |
+| **Not collected** | Service-side data such as Power BI refresh history, Fabric capacity metrics or audit logs: ODGO only reads the files that the gateway writes on its servers |
 
 | Log type | Gateway files | Default |
 |---|---|---|
